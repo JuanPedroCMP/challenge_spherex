@@ -1,6 +1,6 @@
 # NASA Space Apps 2026 - Challenge 12: Planet X and SPHEREx
 
-Read `CHALLENGE.md` (scope, MVP, architecture) and `docs/SPHEREX_NOTES.md` (IRSA/SPHEREx technical facts) before any work. Work in `hackathon-mode` (skill) posture.
+Read `CHALLENGE.md` (scope, MVP, architecture), `docs/WORKFLOW.md` (team's chosen UI: desktop-only React + PixiJS sky viewer, feature tiers, schedule, data contract — this overrides CHALLENGE.md where they differ) and `docs/SPHEREX_NOTES.md` (IRSA/SPHEREx technical facts) before any work. Work in `hackathon-mode` (skill) posture.
 
 ## Specialist agents (.claude/agents/)
 | Agent | Owns |
@@ -10,11 +10,13 @@ Read `CHALLENGE.md` (scope, MVP, architecture) and `docs/SPHEREX_NOTES.md` (IRSA
 | sky-viewer-frontend | `app/` (Vite+React+Tailwind, flipbook, Aladin Lite, spectrum chart, URL params, Vercel) |
 | astro-science-validator | `docs/TARGETS.md`, `docs/VALIDATION.md`, science copy; reviews the others |
 | pitch-and-submission | `SUBMISSION.md`, `DEMO.md`, README polish, References checklist |
+| hackathon-lead | `STATUS.md`, `docs/API.md`; coordinates the others, checkpoints, scope cuts |
+| local-pitch-coach | `PITCH.md` (live pitch for local judges + Q&A sheet) |
 
-Suggested order: data-engineer + image-processor (prebake the 5 test targets) -> frontend on prebaked data, deploy -> live backend -> validator -> pitch (Sunday 16:00).
+Suggested order: hackathon-lead (plan) -> data-engineer + image-processor (prebake the 5 test targets) -> frontend on prebaked data, deploy -> live backend -> validator -> pitch-and-submission (Sunday 16:00) -> local-pitch-coach.
 
 ## Skills (.claude/skills/)
-choose-challenge (already done), hackathon-mode, design-reference, submit-and-demo.
+Synced from https://github.com/angelinopires/space-apps-2026-kit: choose-challenge (already done), hackathon-mode, design-reference, nasa-data, submit-and-demo, pitch-deck.
 
 ## Always
 - Everything user/judge-facing in English. No NASA logos or Space Apps branding.
