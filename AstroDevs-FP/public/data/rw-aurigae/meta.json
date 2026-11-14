@@ -11,7 +11,7 @@
  "width": 47,
  "height": 47,
  "release": "spherex_dr1 + spherex_dr1_deep + spherex_qr3 + spherex_qr3_deep",
- "generated_utc": "2026-11-14T20:10:09Z",
+ "generated_utc": "2026-11-14T22:11:34Z",
  "wcs": {
   "crval": [
    76.95608781822494,
@@ -3394,5 +3394,11 @@
    }
   ]
  },
- "notes": []
+ "notes": [],
+ "pixel_sources": {
+  "s3": 54,
+  "irsa": 0,
+  "local": 0
+ },
+ "offline": false
 }

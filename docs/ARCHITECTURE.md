@@ -36,7 +36,9 @@ The web app can run with no backend at all: the five test targets are prebaked a
 
 **5. Stack each visit** (`imaging.coadd`). The median of the exposures in a visit. It lowers the noise and removes one-off glitches such as cosmic rays.
 
-What counts as a "visit" needed care. On a normal field, SPHEREx's look at a spot is spread over up to ~55 days (we measured this on the test targets), followed by months of nothing. Near the ecliptic poles (the Deep Survey) it looks almost every day: R Draconis has 394 days of nearly unbroken coverage. So a visit ends at a gap of more than 30 days *or* once it is 60 days long, and we keep at most 8 visits, evenly spread in time.
+What counts as a "visit" needed care. On a normal field, SPHEREx's look at a spot is spread over up to ~55 days (we measured this on the test targets), followed by months of nothing. Near the ecliptic poles (the Deep Survey) it looks almost every day: R Draconis has 394 days of nearly unbroken coverage. So a visit ends at a gap of more than 30 days *or* once it is 60 days long (30 days where a detector has dense, deep-survey coverage), and we keep at most 8 visits per detector, evenly spread in time.
+
+Visits are planned **per detector** (`pipeline.plan_visits`). SPHEREx's six detectors look at different strips of sky at the same moment, so a star is seen by D1 in some weeks and by D3 in others: R Draconis was on D1 in months 1-6 and 14-17 of the mission and on D3 in months 0-1 and 8-13. Each detector gets its own visits, and visits of different detectors less than 30 days apart share a slot on the timeline. The web app then steps and plays only through the dates that have an image in the band on screen, and greys out the others on the timeline.
 
 **6. One brightness scale per band** (`imaging.stretch_limits`). This step is easy to get wrong. We pick one black level (just below the sky) and one white level (the brightest stars, but never closer than 25 noise units to the sky) from all visits together, and apply an asinh stretch, which shows faint and bright things at the same time. If each visit had its own scale, the image would flicker and hide the motion we want to show.
 
