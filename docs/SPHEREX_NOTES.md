@@ -90,3 +90,20 @@ Positions move with time: for overlays, propagate Gaia DR3 positions (epoch 2016
 - Aladin Lite v3 (CDS) for embedding; HiPS surveys of WISE/2MASS/DSS for context; Gaia DR3 catalog via VizieR `I/355/gaiadr3` or Gaia TAP.
 - Display stretch: subtract ZODI, mask bad flags (set NaN), asinh or zscale stretch with the SAME limits across all frames (otherwise flicker hides motion).
 - Moving-object aids: per-visit coadds (median of exposures within a visit), difference image (visit N - visit 1), blink.
+
+## 8. Verified on 2026-11-14 (real queries, and the IRSA intro + mosaic tutorials)
+
+Tutorials: https://caltech-ipac.github.io/irsa-tutorials/spherex-intro/ and https://caltech-ipac.github.io/irsa-tutorials/spherex-mosaic/
+
+- **Search.** `Irsa.query_sia(pos=(coord, 1*u.arcsec), collection=['spherex_dr1', 'spherex_dr1_deep', 'spherex_qr3', 'spherex_qr3_deep'])` works and returns all six detectors in one answer (WISE 0855: 48 exposures each for D2 and D5). We now search once per region and filter by `energy_bandpassname` locally.
+- **Time.** `t_min` is MJD (IVOA ObsCore). Verified: WISE 0855 visits came out as 2025-05-06, 2025-11-16 and 2026-05-02, about six months apart as expected.
+- **Cutouts.** `?center=RA,DECd&size=SIZE` with SIZE in degrees works on the SIA `access_url` (verified).
+- **Reliability.** IRSA SIA/TAP answered HTTP 502 for most of 14 Nov and intermittently afterwards; TAP once took 6m41s before failing. The tutorial's pattern is retries with 10 s, 20 s waits and a 120 s timeout. We retry the whole search and validate every downloaded file opens as FITS with an IMAGE extension.
+- **Units.** IMAGE and ZODI are MJy/sr, VARIANCE (MJy/sr)^2. ZODI is not subtracted in IMAGE.
+- **Flags.** Names are in the FLAGS header: `MSKNnnnn` (name) and `MSKDnnnn` (description); `L2 N_*` header keywords count flagged pixels. SOURCE (bit 21) is the most common flag and marks known sources, so it must not be masked. The full table is Table 16 of the Explanatory Supplement.
+- **Wavelength.** `WCS(header=hdul['IMAGE'].header, fobj=hdul, key='W')`, then `sip = None`; `pixel_to_world` returns wavelength AND bandwidth (µm). Verified on real cutouts: D6 at WISE 0855 gave 4.70-4.97 µm with ~0.037 µm bandwidth.
+- **Spatial WCS** (mosaic tutorial): build it with `WCS(hdr, fobj=hdul).celestial`.
+- **Reprojection** (mosaic tutorial): `reproject_exact` (flux-conserving).
+- **Flux** (mosaic tutorial): mJy = MJy/sr x 23.5045 x (pixel scale in arcsec)^2 / 1000.
+- **Photometry** (mosaic tutorial): aperture sum minus (sigma-clipped annulus mean, sigma=3, maxiters=10) x aperture area.
+- **Mosaics.** The IRSA SPHEREx mosaic tool has no API (the tutorial built its mosaic by hand), so we build our own per-visit coadds from cutouts.

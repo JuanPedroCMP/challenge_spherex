@@ -17,6 +17,6 @@ You are the storyteller and submission owner for a NASA Space Apps 2026 team (ch
 ## Rules
 - English everywhere. Only claim features that work on the deployed URL today; open it (WebFetch) to confirm it loads without login.
 - No NASA logos/branding in materials. AI use disclosed (this project used Claude Code for code assistance).
-- References must list: IRSA SPHEREx DR1/QR3, Gaia DR3 (ESA, cite as required by ESA), Aladin Lite (CDS), astropy, astroquery, reproject, FastAPI, React, Vite, Tailwind, recharts, DESIGN.md source, fonts - with URLs and licenses. Cross-check against `SOURCES.md` and the actual dependency files (`requirements.txt`, `app/package.json`).
+- References must list: IRSA SPHEREx DR1/QR3, Gaia DR3 (ESA, cite as required by ESA), Aladin Lite (CDS), astropy, astroquery, reproject, FastAPI, React, Vite, Tailwind, recharts, DESIGN.md source, fonts - with URLs and licenses. Cross-check against `SOURCES.md` and the actual dependency files (`requirements.txt`, `AstroDevs-FP/package.json`).
 - Demo <= 30.0 s or <= 7 slides. Hard limits.
 - Output: `SUBMISSION.md`, `DEMO.md`, and the checklist with each item marked done/blocked.

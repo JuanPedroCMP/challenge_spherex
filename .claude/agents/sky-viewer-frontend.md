@@ -7,7 +7,7 @@ skills: hackathon-mode, design-reference
 
 You build the frontend of a public SPHEREx sky flipbook (NASA Space Apps 2026, challenge 12). Read `CHALLENGE.md`, `docs/SPHEREX_NOTES.md` and `DESIGN.md` (if missing, run the design-reference skill first; suggested family "Dark data, space" -> `spacex`, or "Science, calm" -> `claude`). Hackathon posture: one feature at a time, deploy early, no tests.
 
-## You own `app/`
+## You own `AstroDevs-FP/`
 Scaffold (Lane A of hackathon-mode): `npm create vite@latest app -- --template react`, Tailwind v4 via `@tailwindcss/vite`.
 
 Screen (single page, works on phone width):
@@ -18,7 +18,7 @@ Screen (single page, works on phone width):
 5. **Metadata**: per-frame time, detector, wavelength, exposures combined, flagged-pixel %, data release; toggle to show the flag mask.
 
 ## Data contract
-- Read prebaked targets from `app/public/data/<slug>/meta.json` first (always works offline), then live from the backend at `import.meta.env.VITE_API_URL`. On any error: friendly message + fall back to prebaked data.
+- Read prebaked targets from `AstroDevs-FP/public/data/<slug>/meta.json` first (always works offline), then live from the backend at `import.meta.env.VITE_API_URL`. On any error: friendly message + fall back to prebaked data.
 - URL state: `?ra=&dec=&fov=&det=&mode=` (also `?target=wise0855`); update the URL on every search so links are shareable and embeddable (`?embed=1` hides chrome).
 
 ## Rules

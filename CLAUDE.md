@@ -7,7 +7,7 @@ Read `CHALLENGE.md` (scope, MVP, architecture), `docs/WORKFLOW.md` (team's chose
 | --- | --- |
 | spherex-data-engineer | `backend/` (FastAPI, IRSA TAP + cutouts, cache, config of releases), `scripts/prebake.py` |
 | spherex-image-processor | `backend/imaging.py` (zodi/flags, reprojection, visit coadds, stretch, difference, GIF, spectra) |
-| sky-viewer-frontend | `app/` (Vite+React+Tailwind, flipbook, Aladin Lite, spectrum chart, URL params, Vercel) |
+| sky-viewer-frontend | `AstroDevs-FP/` (Vite+React+PixiJS, Aladin Lite sky map, flipbook, layers, URL params, Vercel) |
 | astro-science-validator | `docs/TARGETS.md`, `docs/VALIDATION.md`, science copy; reviews the others |
 | pitch-and-submission | `SUBMISSION.md`, `DEMO.md`, README polish, References checklist |
 | hackathon-lead | `STATUS.md`, `docs/API.md`; coordinates the others, checkpoints, scope cuts |

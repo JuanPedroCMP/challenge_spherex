@@ -32,7 +32,7 @@ Documento interno da equipe (PT). Tudo que o usuário/jurado vê continua em ing
 | 8 | Curva de brilho | Ferramenta 💡 | **(a)** Curva de luz: clique numa estrela → fotometria de abertura em cada visita → gráfico brilho × data (RW Aur, R Dra). **(b)** Curva de tons: stretch linear/log/asinh e pontos preto/branco por camada | image-processor + frontend | Nível 2 (a) / MVP simples (b) |
 | 9 | Exportar GIF do loop | Timeline | No cliente: extrair os quadros do canvas Pixi (`renderer.extract`) e codificar com `gifenc` (MIT), respeitando período e velocidade escolhidos | frontend | Nível 2 |
 | 10 | Rastrear um corpo celeste | Ferramenta ⌖ | **(a)** Objeto conhecido: posição Gaia DR3 propagada (movimento próprio + paralaxe) para a data de cada quadro → marcador e trilha. **(b)** Clique num ponto → centróide em cada visita → trilha medida vs prevista. Objetos do Sistema Solar: efemérides JPL Horizons via backend | science-validator + image-processor | (a) **MVP** · (b) Nível 2 · Horizons Nível 3 |
-| 11 | Baixar imagens localmente (evitar latência) | Botão "Save region" no workspace | Três camadas de cache: **prebake** dos 5 alvos em `app/public/data/`; cache em disco no backend (chave release+ra+dec+fov+det+uri); no navegador, a Cache Storage API guarda recortes já vistos. Opcional: baixar ZIP com PNG + FITS + `meta.json` | data-engineer + frontend | Prebake **MVP** · resto Nível 2 |
+| 11 | Baixar imagens localmente (evitar latência) | Botão "Save region" no workspace | Três camadas de cache: **prebake** dos 5 alvos em `AstroDevs-FP/public/data/`; cache em disco no backend (chave release+ra+dec+fov+det+uri); no navegador, a Cache Storage API guarda recortes já vistos. Opcional: baixar ZIP com PNG + FITS + `meta.json` | data-engineer + frontend | Prebake **MVP** · resto Nível 2 |
 | 12 | Céu visto de um local da Terra (coordenadas ou endereço) | Navbar (aba "Earth location") | Endereço → lat/lon (Nominatim/OSM via backend, com limite de uso) → zênite em RA/Dec para data/hora (astropy `AltAz` ou `astronomy-engine` no cliente) → centralizar o céu e desenhar o horizonte | frontend + data-engineer | Nível 3 |
 | + | URL compartilhável | — | `?ra=&dec=&fov=&layers=D4:1,D6:0.6&from=&to=&fps=&mode=blink` com `history.replaceState` | frontend | **MVP** (barato e pedido no desafio) |
 | + | Metadados e flags | Painel ⓘ | Data, detector, λ, nº de exposições, % de pixels com flag e botão "show flags" | frontend | Nível 2 |
@@ -48,7 +48,7 @@ Documento interno da equipe (PT). Tudo que o usuário/jurado vê continua em ing
 
 ## 3. Contrato de dados (escrever em `docs/API.md` antes de codar)
 
-`app/public/data/<slug>/meta.json` (prebake) = resposta de `GET /api/frames` (ao vivo):
+`AstroDevs-FP/public/data/<slug>/meta.json` (prebake) = resposta de `GET /api/frames` (ao vivo):
 
 ```json
 {
@@ -76,7 +76,7 @@ Endpoints: `/api/resolve?q=`, `/api/search?ra&dec&fov&det`, `/api/frames?…`, `
 | Checkpoint | Entregas | Agentes (em paralelo quando as pastas são diferentes) |
 |---|---|---|
 | **Sáb 11:00** hello no ar | Vite + React + Tailwind + PixiJS com uma página publicada na Vercel. `docs/API.md` com o contrato acima | sky-viewer-frontend · hackathon-lead |
-| **Sáb 14:00** funciona com amostra | `scripts/prebake.py` para os 5 alvos, 1–2 detectores cada (Barnard D1–D3; WISE 0855 e Eps Indi B D5/D6; RW Aur e R Dra D1–D3). Frontend: navbar, Aladin com o HiPS SPHEREx, workspace Pixi lendo `meta.json`, **timeline com loop/pausa/velocidade/período** e **blink** | data-engineer + image-processor (`backend/`, `scripts/`) ‖ frontend (`app/`) |
+| **Sáb 14:00** funciona com amostra | `scripts/prebake.py` para os 5 alvos, 1–2 detectores cada (Barnard D1–D3; WISE 0855 e Eps Indi B D5/D6; RW Aur e R Dra D1–D3). Frontend: navbar, Aladin com o HiPS SPHEREx, workspace Pixi lendo `meta.json`, **timeline com loop/pausa/velocidade/período** e **blink** | data-engineer + image-processor (`backend/`, `scripts/`) ‖ frontend (`AstroDevs-FP/`) |
 | **Sáb 19:00** dados NASA ao vivo | FastAPI no ar (Hugging Face Spaces/Render): resolve, search, frames com cache. Recorte com clique no céu → cutouts ao vivo. Busca RA/Dec/nome, URL params, marcador Gaia. **Se o ao vivo não funcionar até aqui: fica só o prebake e a busca livre é marcada "beta"** (regra da nasa-data) | data-engineer ‖ frontend · astro-science-validator escreve `docs/TARGETS.md` |
 | **Sáb noite** | Drawer de camadas (opacidade, contraste, outro período), diferença, curva de tons, flags. Validação: o movimento medido de Barnard e WISE 0855 bate com o Gaia (`docs/VALIDATION.md`) | frontend + image-processor ‖ validator |
 | **Dom 12:00** feature freeze | Exportar GIF, curva de luz (RW Aur, R Dra), rastreamento por clique, cache no navegador/"Save region". Nível 3 só se tudo isso estiver no ar | frontend + image-processor |
@@ -106,5 +106,5 @@ Endpoints: `/api/resolve?q=`, `/api/search?ra&dec&fov&det`, `/api/frames?…`, `
 
 ## Decisões pendentes
 
-1. Pasta do frontend: `app/` (é o que o CLAUDE.md e os agentes usam) ou `frontend/` (pasta vazia que já existe). Escolher uma e apagar a outra.
+1. Pasta do frontend: `AstroDevs-FP/` (é o que o CLAUDE.md e os agentes usam) ou `frontend/` (pasta vazia que já existe). Escolher uma e apagar a outra.
 2. "Curva de brilho": a equipe quer (a) curva de luz, (b) curva de tons, ou as duas? Este plano assume as duas, com (b) no MVP.

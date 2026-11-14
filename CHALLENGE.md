@@ -13,8 +13,8 @@ A **public web tool** where a user enters RA/Dec, and it shows a series of SPHER
 
 ## Architecture
 - `backend/`: Python FastAPI (astroquery TAP + IRSA cutouts + astropy) -> returns PNG frames + JSON metadata. Release list is a config value (easy update to new data releases). Deploy: Hugging Face Spaces (Docker) or Render.
-- `scripts/prebake.py`: same pipeline run offline for the 5 test targets -> `app/public/data/<target>/` (the mock that always works).
-- `app/`: Vite + React + Tailwind viewer, deploy on Vercel.
+- `scripts/prebake.py`: same pipeline run offline for the 5 test targets -> `AstroDevs-FP/public/data/<target>/` (the mock that always works).
+- `AstroDevs-FP/`: Vite + React + Tailwind viewer, deploy on Vercel.
 
 ## Starting data
 IRSA SPHEREx DR1 + QR3 (TAP `spherex.plane`/`spherex.artifact`, cutout service). No login, no API key. Gaia DR3 (ESA/VizieR). Optional partner: CSA NEOSSat/CADC.

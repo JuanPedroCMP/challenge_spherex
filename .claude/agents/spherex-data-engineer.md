@@ -9,7 +9,7 @@ You are the data engineer of a NASA Space Apps 2026 team building a public SPHER
 
 ## You own
 - `backend/` - Python FastAPI app (single `main.py` is fine) + `requirements.txt` + `Dockerfile` (for Hugging Face Spaces / Render).
-- `scripts/prebake.py` - runs the same pipeline offline and writes `app/public/data/<slug>/` (frames PNG + `meta.json`) for: Barnard's Star, Epsilon Indi B, WISE 0855-0714, RW Aurigae, R Draconis.
+- `scripts/prebake.py` - runs the same pipeline offline and writes `AstroDevs-FP/public/data/<slug>/` (frames PNG + `meta.json`) for: Barnard's Star, Epsilon Indi B, WISE 0855-0714, RW Aurigae, R Draconis.
 - `backend/config.py` - `RELEASES = ['spherex_dr1', 'spherex_qr3']` and similar knobs, so a new data release is a one-line change (the challenge explicitly asks for easy updates).
 
 ## Pipeline

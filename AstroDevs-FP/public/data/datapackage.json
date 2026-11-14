@@ -1,0 +1,102 @@
+{
+ "name": "skyblink-prebaked-targets",
+ "title": "SkyBlink prebaked test targets",
+ "generated_by_ai": true,
+ "resources": [
+  {
+   "name": "barnards-star",
+   "path": "barnards-star/meta.json",
+   "format": "json",
+   "title": "Barnard's Star: per-visit SPHEREx frames and metadata",
+   "simulated": true,
+   "generated_by_ai": true,
+   "description": "SIMULATED sample: real Gaia DR3 star positions rendered by scripts/make_mock.py (an AI-assisted script). Not SPHEREx pixels.",
+   "sources": [
+    {
+     "title": "SPHEREx (NASA/IPAC IRSA)",
+     "path": "https://irsa.ipac.caltech.edu/Missions/spherex.html"
+    },
+    {
+     "title": "Gaia DR3 (ESA)",
+     "path": "https://www.cosmos.esa.int/web/gaia/dr3"
+    }
+   ]
+  },
+  {
+   "name": "epsilon-indi-b",
+   "path": "epsilon-indi-b/meta.json",
+   "format": "json",
+   "title": "Epsilon Indi B: per-visit SPHEREx frames and metadata",
+   "simulated": true,
+   "generated_by_ai": true,
+   "description": "SIMULATED sample: real Gaia DR3 star positions rendered by scripts/make_mock.py (an AI-assisted script). Not SPHEREx pixels.",
+   "sources": [
+    {
+     "title": "SPHEREx (NASA/IPAC IRSA)",
+     "path": "https://irsa.ipac.caltech.edu/Missions/spherex.html"
+    },
+    {
+     "title": "Gaia DR3 (ESA)",
+     "path": "https://www.cosmos.esa.int/web/gaia/dr3"
+    }
+   ]
+  },
+  {
+   "name": "wise-0855",
+   "path": "wise-0855/meta.json",
+   "format": "json",
+   "title": "WISE 0855-0714: per-visit SPHEREx frames and metadata",
+   "simulated": false,
+   "generated_by_ai": false,
+   "description": "Real SPHEREx Level 2 cutouts from NASA/IPAC IRSA, processed by backend/pipeline.py.",
+   "sources": [
+    {
+     "title": "SPHEREx (NASA/IPAC IRSA)",
+     "path": "https://irsa.ipac.caltech.edu/Missions/spherex.html"
+    },
+    {
+     "title": "Gaia DR3 (ESA)",
+     "path": "https://www.cosmos.esa.int/web/gaia/dr3"
+    }
+   ]
+  },
+  {
+   "name": "rw-aurigae",
+   "path": "rw-aurigae/meta.json",
+   "format": "json",
+   "title": "RW Aurigae: per-visit SPHEREx frames and metadata",
+   "simulated": true,
+   "generated_by_ai": true,
+   "description": "SIMULATED sample: real Gaia DR3 star positions rendered by scripts/make_mock.py (an AI-assisted script). Not SPHEREx pixels.",
+   "sources": [
+    {
+     "title": "SPHEREx (NASA/IPAC IRSA)",
+     "path": "https://irsa.ipac.caltech.edu/Missions/spherex.html"
+    },
+    {
+     "title": "Gaia DR3 (ESA)",
+     "path": "https://www.cosmos.esa.int/web/gaia/dr3"
+    }
+   ]
+  },
+  {
+   "name": "r-draconis",
+   "path": "r-draconis/meta.json",
+   "format": "json",
+   "title": "R Draconis: per-visit SPHEREx frames and metadata",
+   "simulated": true,
+   "generated_by_ai": true,
+   "description": "SIMULATED sample: real Gaia DR3 star positions rendered by scripts/make_mock.py (an AI-assisted script). Not SPHEREx pixels.",
+   "sources": [
+    {
+     "title": "SPHEREx (NASA/IPAC IRSA)",
+     "path": "https://irsa.ipac.caltech.edu/Missions/spherex.html"
+    },
+    {
+     "title": "Gaia DR3 (ESA)",
+     "path": "https://www.cosmos.esa.int/web/gaia/dr3"
+    }
+   ]
+  }
+ ]
+}
