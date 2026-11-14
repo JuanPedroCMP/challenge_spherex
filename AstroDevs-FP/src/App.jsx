@@ -11,8 +11,8 @@ import SearchPanel from './components/SearchPanel'
 import LayersDrawer from './components/LayersDrawer'
 import SkyView from './components/SkyView'
 import Sidebar from './components/Sidebar'
-import Onboarding from './components/Onboarding'
-import { DETECTORS, hasApi, loadFrames, loadIndex, loadLive, loadPrebaked, resolveName } from './lib/data'
+import Tour from './components/Tour'
+import { DETECTORS, hasApi, loadFrames, loadIndex, loadLive, loadPrebaked, resolveName, skipBlankSlice } from './lib/data'
 import { angularSep, parseCoords, pixToSky } from './lib/coords'
 import { trackSource } from './lib/measure'
 import { downloadGif } from './lib/gif'
@@ -30,7 +30,7 @@ const initial = {
   blinkA: 0, blinkB: 0, blinkPhase: 0, blinkMs: 600,
   overlays: { target: true, gaia: false, mask: false },
   track: null, curvePoint: null,
-  drawer: false, search: false, intro: false, tab: 'curve',
+  drawer: false, search: false, tour: null, tab: 'curve', // tour: step number while the guided tour is open
   survey: 'spherex', slice: 25,
   focus: null, toast: '',
   spectrum: null, // { status, data, error, label } - from the SPHEREx all-sky cube on AWS
@@ -220,10 +220,10 @@ export default function App() {
     urlInit.current = readUrl()
     const u0 = urlInit.current
     if (u0.sky && ['spherex', '2mass', 'dss'].includes(u0.sky)) set({ survey: u0.sky })
-    if (u0.slice !== undefined) set({ slice: u0.slice })
+    if (u0.slice !== undefined) set({ slice: skipBlankSlice(u0.slice) })
     loadIndex().then((index) => set({ index })).catch(() => set({ index: [] }))
     try {
-      if (!localStorage.getItem('cosmosight-intro')) set({ intro: true })
+      if (!localStorage.getItem('cosmosight-tour-done')) set({ tour: 0 })
     } catch { /* storage blocked */ }
   }, [set])
 
@@ -238,12 +238,12 @@ export default function App() {
     if (tgt) {
       extra.det = extra.det ?? tgt.default_det
       openRegion(() => loadPrebaked(u.target), extra)
-      set({ intro: false })
+      set({ tour: null }) // shared links open straight to their view
     } else if (u.coords) {
       const preset = nearestPreset(u.coords.ra, u.coords.dec, 0.07)
       if (preset) openRegion(() => loadPrebaked(preset.slug), { ...extra, det: extra.det ?? preset.default_det })
       else { focusSky(u.coords.ra, u.coords.dec, 0.5, 'SIN'); openLive(u.coords.ra, u.coords.dec, u.fov || 0.08, undefined, extra) }
-      set({ intro: false })
+      set({ tour: null })
     }
   }, [s.index, set, openRegion, nearestPreset, focusSky, openLive])
 
@@ -260,6 +260,7 @@ export default function App() {
   // keyboard shortcuts (desktop)
   useEffect(() => {
     const onKey = (e) => {
+      if (s.tour !== null) return // the tour has its own keys (arrows, Esc)
       if (['INPUT', 'SELECT', 'TEXTAREA'].includes(e.target.tagName) || e.ctrlKey || e.metaKey || e.altKey) return
       const k = e.key
       if (k === ' ') { e.preventDefault(); set({ playing: !s.playing }) }
@@ -273,7 +274,7 @@ export default function App() {
       else if (k === 's' || k === 'S') set({ tool: s.tool === 'spectrum' ? 'pan' : 'spectrum' })
       else if (k === 'l' || k === 'L') set({ drawer: !s.drawer })
       else if (k === '/') { e.preventDefault(); set({ search: true }) }
-      else if (k === 'Escape') set({ search: false, drawer: false, intro: false, tool: 'pan' })
+      else if (k === 'Escape') set({ search: false, drawer: false, tool: 'pan' })
       else if (k === ']') set({ fps: Math.min(8, s.fps * 1.5) })
       else if (k === '[') set({ fps: Math.max(0.5, s.fps / 1.5) })
       else if (/^[1-6]$/.test(k) && s.layers.length && s.region?.detectors.some((d) => d.det === +k)) {
@@ -283,7 +284,7 @@ export default function App() {
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
-  }, [s.playing, s.tool, s.drawer, s.fps, s.layers, s.region, s.frame, set])
+  }, [s.playing, s.tool, s.drawer, s.fps, s.layers, s.region, s.frame, s.tour, set])
 
   const primaryDet = () => {
     const vis = s.layers.filter((l) => l.visible)
@@ -353,7 +354,7 @@ export default function App() {
       <Navbar
         drawerOpen={s.drawer} onMenu={() => set({ drawer: !s.drawer })}
         onSearch={() => set({ search: !s.search })} searchOpen={s.search}
-        region={s.region} onHelp={() => set({ intro: true })}
+        region={s.region} onHelp={() => set({ tour: 0, search: false, drawer: false })}
       />
       {s.search && (
         <SearchPanel index={s.index} onSearch={search} onTarget={(slug) => selectTarget(slug)}
@@ -375,12 +376,14 @@ export default function App() {
           onTrackTarget={trackTarget} onExportGif={exportGif} onTarget={selectTarget}
           onCancel={() => { loadSeq.current++; set({ status: s.region ? 'ready' : 'idle' }) }} />
       </main>
-      {s.intro && (
-        <Onboarding index={s.index} onStart={(slug) => {
-          try { localStorage.setItem('cosmosight-intro', '1') } catch { /* storage blocked */ }
-          set({ intro: false })
-          if (slug) selectTarget(slug)
-        }} />
+      {s.tour !== null && (
+        <Tour step={s.tour} index={s.index} hasRegion={!!s.region}
+          onStart={(slug) => { if (!s.region && slug) selectTarget(slug); set({ tour: 1, drawer: false, search: false }) }}
+          onStep={(n) => set({ tour: n, drawer: false })}
+          onClose={() => {
+            try { localStorage.setItem('cosmosight-tour-done', '1') } catch { /* storage blocked */ }
+            set({ tour: null })
+          }} />
       )}
     </div>
   )

@@ -35,6 +35,18 @@ export const SKY_SURVEYS = {
 const CUBE_WL = [0.753, 0.771, 0.790, 0.809, 0.828, 0.848, 0.868, 0.889, 0.910, 0.932, 0.955, 0.978, 1.001, 1.025, 1.050, 1.075, 1.102, 1.113, 1.139, 1.167, 1.195, 1.224, 1.254, 1.284, 1.315, 1.346, 1.378, 1.412, 1.446, 1.481, 1.517, 1.554, 1.592, 1.631, 1.656, 1.695, 1.735, 1.775, 1.818, 1.861, 1.905, 1.949, 1.995, 2.041, 2.089, 2.139, 2.189, 2.240, 2.292, 2.345, 2.399, 2.445, 2.506, 2.575, 2.646, 2.719, 2.794, 2.871, 2.951, 3.033, 3.118, 3.204, 3.293, 3.383, 3.476, 3.570, 3.667, 3.768, 3.833, 3.867, 3.901, 3.935, 3.970, 4.005, 4.040, 4.076, 4.112, 4.148, 4.184, 4.220, 4.257, 4.294, 4.331, 4.368, 4.405, 4.435, 4.467, 4.500, 4.533, 4.566, 4.600, 4.635, 4.669, 4.704, 4.739, 4.773, 4.808, 4.843, 4.879, 4.915, 4.951, 4.988]
 export const BLANK_SLICES = [50, 51] // dichroic channels, blank in the cube
 
+/**
+ * Band to show when the slider lands on `next`, coming from `prev`: blank bands are skipped in the
+ * direction of travel, so the sky map never goes empty while you scroll through the colors.
+ */
+export function skipBlankSlice(next, prev = next) {
+  if (!BLANK_SLICES.includes(next)) return next
+  const dir = next >= prev ? 1 : -1
+  let k = next
+  while (BLANK_SLICES.includes(k)) k += dir
+  return Math.min(101, Math.max(0, k))
+}
+
 export function sliceInfo(slice) {
   const det = Math.min(6, Math.floor(slice / 17) + 1)
   return { det, wl: CUBE_WL[slice], blank: BLANK_SLICES.includes(slice) }

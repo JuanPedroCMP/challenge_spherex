@@ -7,7 +7,7 @@
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faArrowDown, faArrowUp, faPlus, faRotateLeft, faTrashCan, faXmark } from '../lib/icons'
 import { makeLayer } from '../lib/layers'
-import { DETECTORS, SKY_SURVEYS, detLabel, sliceInfo } from '../lib/data'
+import { BLANK_SLICES, DETECTORS, SKY_SURVEYS, detLabel, skipBlankSlice, sliceInfo } from '../lib/data'
 
 export default function LayersDrawer({ open, s, dispatch, set }) {
   const region = s.region
@@ -118,9 +118,10 @@ export default function LayersDrawer({ open, s, dispatch, set }) {
           ))}
         </div>
         {s.survey === 'spherex' && (
-          <Slider label={`Band ${s.slice + 1} of 102 · ${info.wl.toFixed(3)} µm${info.blank ? ' (empty band)' : ''}`} min={0} max={101} step={1}
-            value={s.slice} onChange={(v) => set({ slice: v })} fmt={() => ''} />
+          <Slider label={`Band ${s.slice + 1} of 102 · ${info.wl.toFixed(3)} µm`} min={0} max={101} step={1}
+            value={s.slice} onChange={(v) => set({ slice: skipBlankSlice(v, s.slice) })} fmt={() => ''} />
         )}
+        {s.survey === 'spherex' && <p className="muted small">Bands {BLANK_SLICES.map((b) => b + 1).join(' and ')} are skipped: they sit on the edge between two filters and hold no data.</p>}
         <p className="muted small">The map is SPHEREx's average of the whole survey. The time-lapse comes from the separate visits of the patch you open.</p>
       </section>
     </aside>
