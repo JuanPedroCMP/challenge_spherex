@@ -1,31 +1,40 @@
 // AI-Assisted: the sidebar component generated with Claude Code (Anthropic) and reviewed by the team.
 /**
- * The right-hand column: tool bar, the region workspace, the timeline, tracking results and the
- * tabs (light curve, details, plain-language explanations).
+ * The right-hand column, read top to bottom in the order people work: pick a tool, look at the
+ * region, move through time, then measure. Each block is a labelled section (Gestalt common region).
  */
-import { useMemo } from 'react'
-import Workspace from './Workspace'
+import { lazy, Suspense, useMemo } from 'react'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faChartLine, faCircleInfo, faCrop, faCrosshairs, faHand, faLayerGroup, faRainbow, faTriangleExclamation } from '../lib/icons'
 import Timeline from './Timeline'
 import LightCurve from './LightCurve'
+import SpectrumChart from './SpectrumChart'
 import { DETECTORS, detLabel, hasApi } from '../lib/data'
 import { formatDec, formatRA } from '../lib/coords'
 import { currentVisitIndex } from '../lib/playback'
 
+// PixiJS only loads once a region is open (Vercel "bundle-dynamic-imports").
+const Workspace = lazy(() => import('./Workspace'))
+
 const TOOLS = [
-  ['pan', '✋', 'Move', 'Drag to pan, scroll to zoom, double-click to reset'],
-  ['crop', '⬚', 'Cut out', 'Click on the sky map to open a region (C)'],
-  ['track', '⌖', 'Track', 'Click a star to follow it through every visit (T)'],
-  ['curve', '◐', 'Brightness', 'Click a star to plot its brightness over time'],
+  ['pan', faHand, 'Move', 'Drag to move, scroll to zoom, double-click to reset'],
+  ['crop', faCrop, 'Cut out', 'Click the sky map to open that patch (C)'],
+  ['track', faCrosshairs, 'Follow', 'Click a star to follow it through every visit (T)'],
+  ['curve', faChartLine, 'Brightness', 'Click a star to see its brightness over time'],
+  ['spectrum', faRainbow, 'Spectrum', 'Click anywhere, on the map or the patch, to see its 102 colors (S)'],
 ]
 const FOVS = [[0.025, '1.5′'], [0.05, '3′'], [0.08, '4.8′'], [0.1, '6′'], [0.2, '12′']]
 
 const EXPLAIN = [
-  ['What am I looking at?', 'Real infrared images from NASA\'s SPHEREx space telescope, taken months apart. The colors are added by us: your eyes cannot see this light.'],
-  ['Wavelengths', 'SPHEREx splits infrared light into 102 colors between 0.75 and 5 microns (µm), read by six detectors (D1–D6). Longer wavelengths reveal colder objects, like brown dwarfs.'],
-  ['Why things move', 'Nearby stars drift across the sky as they orbit the galaxy, and Earth\'s yearly orbit makes close objects wobble (parallax). A dot that shifts between visits is close to us.'],
-  ['The crosshair', 'It marks where Gaia and other catalogs predict the object should be on each date. If the dot follows the crosshair, the motion is real.'],
-  ['Flagged pixels', 'Pixels the mission marked as unreliable (cosmic rays, saturation, ghosts) are blanked out so they do not look like new objects. A dot seen only once is usually noise.'],
+  ['What am I looking at?', 'Real infrared photos from NASA\'s SPHEREx space telescope, of the same patch of sky, taken months apart. We add the colors: your eyes cannot see this light.'],
+  ['Why do things move?', 'Nearby stars drift across the sky as they orbit the galaxy, and Earth\'s trip around the Sun makes close objects wobble a little. A dot that shifts between visits is close to us.'],
+  ['The circle with a cross', 'It marks where the star catalogues say the object should be on each date. If the dot follows it, the motion is real, not a glitch.'],
+  ['Colors and µm', 'SPHEREx splits infrared light into 102 colors between 0.75 and 5 microns (µm), read by six detectors. Longer wavelengths show colder things, like brown dwarfs.'],
+  ['Flagged pixels', 'Pixels the telescope marked as unreliable: saturated bright stars, cosmic-ray hits, reflections. We fill them in from their neighbours so they do not look like holes or new objects. A dot that shows up only once is usually noise.'],
+  ['The spectrum', 'Put the 102 colors side by side and you get a spectrum. Cold brown dwarfs get brighter toward 5 µm, and dips can point to water ice, methane or carbon dioxide.'],
 ]
+
+const TABS = [['curve', 'Brightness'], ['spectrum', 'Spectrum'], ['details', 'Details'], ['explain', 'Explain']]
 
 export default function Sidebar({ s, dispatch, set, stageRef, onPick, onTrackTarget, onExportGif, onTarget, onCancel }) {
   const r = s.region
@@ -36,87 +45,122 @@ export default function Sidebar({ s, dispatch, set, stageRef, onPick, onTrackTar
     track: s.track, curvePoint: s.curvePoint, blend: s.blend,
   }), [r, visit, s.layers, s.mode, s.overlays, s.track, s.curvePoint, s.blend])
 
-  const primary = s.layers.filter((l) => l.visible).at(-1) || s.layers.at(-1)
+  const visible = s.layers.filter((l) => l.visible)
+  const primary = visible.at(-1) || s.layers.at(-1)
   const frameInfo = r && primary ? r.detectors.find((d) => d.det === primary.det)?.frames[visit.id] : null
   const trackStats = r && s.track ? trackSummary(r, s.track) : null
+  const loading = s.status === 'loading'
 
   return (
-    <aside className="sidebar">
-      <div className="toolbar" role="toolbar" aria-label="Tools">
-        {TOOLS.map(([k, icon, label, tip]) => (
-          <button key={k} className={s.tool === k ? 'on' : ''} onClick={() => set({ tool: k })} title={tip} aria-pressed={s.tool === k}>
-            <span aria-hidden="true">{icon}</span>{label}
-          </button>
-        ))}
-        <label className="fov" title="Size of the region to cut out. Bigger = slower to load live.">
-          Size
-          <select value={s.cropFov} onChange={(e) => set({ cropFov: +e.target.value })}>
-            {FOVS.map(([v, l]) => <option key={v} value={v}>{l}</option>)}
-          </select>
-        </label>
-      </div>
+    <aside className="sidebar" aria-label="Region and tools">
+      <section className="panel-section toolbar-section" aria-label="Tools">
+        <div className="toolbar" role="toolbar" aria-label="Tools">
+          {TOOLS.map(([k, icon, label, tip]) => (
+            <button key={k} className={`tool ${s.tool === k ? 'on' : ''}`} onClick={() => set({ tool: s.tool === k && k !== 'pan' ? 'pan' : k })} title={tip} aria-pressed={s.tool === k}>
+              <FontAwesomeIcon icon={icon} />
+              <span>{label}</span>
+            </button>
+          ))}
+        </div>
+        {s.tool === 'crop' && (
+          <label className="inline-select fov" title="How big a patch to cut out. Bigger patches take longer to load live.">
+            Size of the patch
+            <select value={s.cropFov} onChange={(e) => set({ cropFov: +e.target.value })}>
+              {FOVS.map(([v, l]) => <option key={v} value={v}>{l}</option>)}
+            </select>
+          </label>
+        )}
+      </section>
 
-      {!r && s.status !== 'loading' && (
-        <div className="empty">
+      {!r && !loading && (
+        <section className="panel-section empty">
           <h2>Pick a patch of sky</h2>
-          <p>Search above, use <b>Cut out</b> on the sky map, or start with a test target:</p>
+          <p>Search at the top, or choose <b>Cut out</b> and click the map. Not sure where to look? Start with one of these:</p>
           <div className="chips">
             {s.index.map((t) => <button key={t.slug} className="chip" onClick={() => onTarget(t.slug)} title={t.blurb}>{t.name}</button>)}
           </div>
-          {!hasApi && <p className="muted small">Live search of any position needs the API (beta). The five test targets always work.</p>}
-        </div>
+          <p className="muted small">You can also choose <b>Spectrum</b> and click anywhere on the map to see the 102 infrared colors of that spot.</p>
+          {!hasApi && <p className="muted small">Opening any other patch needs our live service, which is not connected on this copy. The five above always work.</p>}
+        </section>
       )}
-      {s.status === 'loading' && (
-        <div className="empty"><div className="spinner" /><p>Loading SPHEREx visits… live regions can take a minute.</p>
-          <button onClick={onCancel}>Cancel</button></div>
+      {!r && s.spectrum && (
+        <section className="panel-section"><h3 className="eyebrow">Spectrum</h3><SpectrumChart spec={s.spectrum} onClose={() => set({ spectrum: null })} /></section>
       )}
-      {s.status === 'error' && <div className="empty error"><p>{s.error}</p></div>}
+      {loading && (
+        <section className="panel-section empty" aria-live="polite">
+          <div className="spinner" />
+          <p>Gathering the SPHEREx visits of this patch. A new patch can take a minute.</p>
+          <button className="ghost" onClick={onCancel}>Cancel</button>
+        </section>
+      )}
+      {s.status === 'error' && (
+        <section className="panel-section empty error" role="alert">
+          <FontAwesomeIcon icon={faTriangleExclamation} size="lg" />
+          <p>{s.error}</p>
+        </section>
+      )}
 
-      {r && s.status !== 'loading' && (
+      {r && !loading && (
         <>
-          <div className="region-head">
-            <div>
-              <h2>{r.name}</h2>
-              <p className="muted small">{formatRA(r.ra)} {formatDec(r.dec)} · {(r.fov_deg * 60).toFixed(1)}′ field</p>
+          <section className="panel-section region" aria-label="Region">
+            <div className="region-head">
+              <div>
+                <h2>{r.name}</h2>
+                <p className="mono coords">{formatRA(r.ra)} {formatDec(r.dec)} · {(r.fov_deg * 60).toFixed(1)}′ wide</p>
+              </div>
+              {r.simulated && <span className="badge warn" title={r.notes?.[0]}>Simulated</span>}
             </div>
-            {r.simulated && <span className="pill warn" title={r.notes?.[0]}>Simulated</span>}
-          </div>
-          {r.simulated && (
-            <p className="sim-note">Simulated sample: real Gaia star positions, not SPHEREx pixels. The NASA archive was unavailable when this was built; it is replaced automatically when the real data is prebaked.</p>
-          )}
+            {r.simulated && (
+              <p className="sim-note">This is a simulated sample built from real Gaia star positions, not SPHEREx pixels.</p>
+            )}
 
-          <div className="ws-wrap">
-            <Workspace meta={r} frames={s.frames} renderState={renderState} tool={s.tool} onPick={onPick} stageRef={stageRef} />
+            <Suspense fallback={<div className="stage-placeholder"><div className="spinner" /></div>}>
+              <Workspace meta={r} frames={s.frames} renderState={renderState} tool={s.tool} onPick={onPick} stageRef={stageRef} />
+            </Suspense>
+            {s.mode === 'diff' && (
+              <p className="legend"><i className="sw blue" />fainter now: where it was <i className="sw orange" />brighter now: where it is <span>· against {r.visits[0].date}</span></p>
+            )}
             <div className="ws-caption">
-              <span><i className="dot" style={{ background: primary ? DETECTORS[primary.det].color : '#fff' }} />{primary ? detLabel(primary.det) : ''}{frameInfo?.wl_um ? ` · λ ${frameInfo.wl_um} µm` : ''}</span>
-              <span>{s.layers.filter((l) => l.visible).length} layer(s) · <button className="link" onClick={() => set({ drawer: true })}>edit</button></span>
+              <span><i className="dot" style={{ background: primary ? DETECTORS[primary.det].color : '#fff' }} />
+                {primary ? detLabel(primary.det) : ''}{frameInfo?.wl_um ? <span className="mono"> · {frameInfo.wl_um} µm</span> : null}</span>
+              <button className="link" onClick={() => set({ drawer: true })}><FontAwesomeIcon icon={faLayerGroup} /> {visible.length === 1 ? '1 layer' : `${visible.length} layers`}</button>
             </div>
-          </div>
+          </section>
 
           <Timeline s={s} set={set} dispatch={dispatch} onExportGif={onExportGif} />
 
-          <div className="track-box">
-            <button onClick={onTrackTarget} disabled={!r.target?.px}>⌖ Track {r.target?.name || 'target'}</button>
-            {trackStats ? (
-              <span>Moved <b>{trackStats.measured}″</b> in {trackStats.years} yr{trackStats.predicted !== null && <> · predicted <b>{trackStats.predicted}″</b></>}
-                {' '}<button className="link" onClick={() => set({ track: null })}>clear</button></span>
-            ) : <span className="muted small">or pick the Track tool and click any star</span>}
-          </div>
+          <section className="panel-section" aria-label="Measure">
+            <h3 className="eyebrow">Measure</h3>
+            <div className="track-box">
+              <button className="ghost" onClick={onTrackTarget} disabled={!r.target?.px}>
+                <FontAwesomeIcon icon={faCrosshairs} /> Follow {r.target?.name || 'the target'}
+              </button>
+              {trackStats ? (
+                <span>Moved <b className="mono">{trackStats.measured}″</b> in {trackStats.years} yr
+                  {trackStats.predicted !== null && <> · expected <b className="mono">{trackStats.predicted}″</b></>}
+                  {' '}<button className="link" onClick={() => set({ track: null })}>clear</button></span>
+              ) : <span className="muted small">or choose <b>Follow</b> and click any star</span>}
+            </div>
 
-          <div className="tabs small">
-            {[['curve', 'Light curve'], ['details', 'Details'], ['explain', 'What am I looking at?']].map(([k, l]) => (
-              <button key={k} className={s.tab === k ? 'on' : ''} onClick={() => set({ tab: k })}>{l}</button>
-            ))}
-          </div>
-          {s.tab === 'curve' && <LightCurve s={s} set={set} />}
-          {s.tab === 'details' && <Details r={r} visit={visit} frameInfo={frameInfo} primary={primary} />}
-          {s.tab === 'explain' && (
-            <dl className="explain">{EXPLAIN.map(([t, d]) => <div key={t}><dt>{t}</dt><dd>{d}</dd></div>)}</dl>
-          )}
+            <div className="tabs small" role="tablist">
+              {TABS.map(([k, l]) => (
+                <button key={k} role="tab" aria-selected={s.tab === k} className={s.tab === k ? 'on' : ''} onClick={() => set({ tab: k })}>{l}</button>
+              ))}
+            </div>
+            {s.tab === 'curve' && <LightCurve s={s} set={set} />}
+            {s.tab === 'spectrum' && (s.spectrum
+              ? <SpectrumChart spec={s.spectrum} />
+              : <p className="muted small">Choose <b>Spectrum</b> and click a star in the patch, or anywhere on the map.</p>)}
+            {s.tab === 'details' && <Details r={r} visit={visit} frameInfo={frameInfo} primary={primary} />}
+            {s.tab === 'explain' && (
+              <dl className="explain">{EXPLAIN.map(([t, d]) => <div key={t}><dt>{t}</dt><dd>{d}</dd></div>)}</dl>
+            )}
+          </section>
         </>
       )}
+
       <footer className="credits">
-        Data: NASA SPHEREx via NASA/IPAC IRSA · ESA Gaia DR3 · sky map Aladin Lite (CDS). Built for NASA Space Apps 2026.
+        <FontAwesomeIcon icon={faCircleInfo} /> Built with NASA data: SPHEREx images from NASA/IPAC IRSA and the SPHEREx open data on AWS. Star positions from ESA Gaia DR3. Sky map by Aladin Lite (CDS).
       </footer>
     </aside>
   )
@@ -146,26 +190,26 @@ function trackSummary(r, track) {
 function Details({ r, visit, frameInfo, primary }) {
   const t = r.target
   const rows = [
-    ['Visit date', `${visit.date} (MJD ${visit.mjd.toFixed(2)})`],
+    ['Date of this visit', `${visit.date} (MJD ${visit.mjd.toFixed(2)})`],
     ['Detector', primary ? detLabel(primary.det) : '–'],
-    ['Wavelength at target', frameInfo?.wl_um ? `${frameInfo.wl_um} µm${frameInfo.bw_um ? ` (band width ${frameInfo.bw_um} µm)` : ''}` : 'n/a'],
-    ['Exposures stacked', frameInfo?.n_exp ?? 'no data this visit'],
-    ['Flagged pixels', frameInfo ? `${(frameInfo.flag_frac * 100).toFixed(1)}% per exposure; ${((frameInfo.masked_frac || 0) * 100).toFixed(1)}% flagged in every exposure (filled in for display, shown with "Flagged pixels")` : '–'],
-    ['Pixel scale', `${r.pixscale_arcsec}″ per pixel`],
+    ['Wavelength at the target', frameInfo?.wl_um ? `${frameInfo.wl_um} µm${frameInfo.bw_um ? `, ${frameInfo.bw_um} µm wide` : ''}` : 'not available'],
+    ['Exposures stacked', frameInfo?.n_exp ?? 'none in this visit'],
+    ['Flagged pixels', frameInfo ? `${(frameInfo.flag_frac * 100).toFixed(1)}% per exposure, ${((frameInfo.masked_frac || 0) * 100).toFixed(1)}% in all of them` : '–'],
+    ['Pixel size', `${r.pixscale_arcsec}″`],
     ['Data', r.release],
-    ['Built', r.generated_utc],
+    ['Processed', r.generated_utc],
   ]
   const ph = primary && r.photometry?.[String(primary.det)]?.[visit.id]
   const mode = primary && r.photometry_mode?.[String(primary.det)]
-  if (ph) rows.push(['Target brightness', `${ph.flux.toFixed(3)} ± ${ph.err.toFixed(3)} ${r.photometry_unit || ''} (${mode ? `saturated star, ${mode}` : '2 px aperture'}, this band and visit)`])
+  if (ph) rows.push(['Target brightness', `${ph.flux.toFixed(3)} ± ${ph.err.toFixed(3)} ${r.photometry_unit || ''}${mode ? ' (saturated: ring around the core)' : ''}`])
   if (t) {
-    rows.push(['Target motion', `${(Math.hypot(t.pmra, t.pmdec) / 1000).toFixed(2)}″/yr · parallax ${t.plx.toFixed(1)} mas`])
-    rows.push(['Predicted shift', `${t.predicted_shift_arcsec}″ (${t.predicted_shift_px} px) over the visits`])
-    rows.push(['Astrometry', t.source])
+    rows.push(['Target motion', `${(Math.hypot(t.pmra, t.pmdec) / 1000).toFixed(2)}″ per year · parallax ${t.plx.toFixed(1)} mas`])
+    rows.push(['Expected shift', `${t.predicted_shift_arcsec}″ (${t.predicted_shift_px} px) across these visits`])
+    rows.push(['Positions from', t.source])
   }
   return (
     <table className="details"><tbody>
-      {rows.map(([k, v]) => <tr key={k}><th>{k}</th><td>{v}</td></tr>)}
+      {rows.map(([k, v]) => <tr key={k}><th>{k}</th><td className={/[0-9]/.test(String(v)) ? 'mono' : ''}>{v}</td></tr>)}
     </tbody></table>
   )
 }

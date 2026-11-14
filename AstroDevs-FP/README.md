@@ -1,6 +1,6 @@
-# SkyBlink web app
+# CosmoSight web app
 
-The browser side of SkyBlink: the sky map, the region workspace, the timeline and the tools. See the [project README](../README.md) for what the project is and [`docs/ARCHITECTURE.md`](../docs/ARCHITECTURE.md) for how it works.
+The browser side of CosmoSight: the sky map, the region workspace, the timeline and the tools. See the [project README](../README.md) for what the project is and [`docs/ARCHITECTURE.md`](../docs/ARCHITECTURE.md) for how it works.
 
 ## Run
 

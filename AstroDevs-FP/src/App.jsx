@@ -13,11 +13,14 @@ import SkyView from './components/SkyView'
 import Sidebar from './components/Sidebar'
 import Onboarding from './components/Onboarding'
 import { DETECTORS, hasApi, loadFrames, loadIndex, loadLive, loadPrebaked, resolveName } from './lib/data'
-import { angularSep, parseCoords } from './lib/coords'
+import { angularSep, parseCoords, pixToSky } from './lib/coords'
 import { trackSource } from './lib/measure'
 import { downloadGif } from './lib/gif'
 import { makeLayer } from './lib/layers'
-import { currentVisitIndex } from './lib/playback'
+
+const SAVED_FALLBACK_DEG = 0.5 // how far a click may be from a saved region to show it instead
+import { currentVisitIndex, nearestWithData, stepWithData, visitsWithData } from './lib/playback'
+import { skySpectrum } from './lib/spectrum'
 
 const initial = {
   index: [], region: null, frames: null, status: 'idle', error: '',
@@ -30,28 +33,48 @@ const initial = {
   drawer: false, search: false, intro: false, tab: 'curve',
   survey: 'spherex', slice: 25,
   focus: null, toast: '',
+  spectrum: null, // { status, data, error, label } - from the SPHEREx all-sky cube on AWS
 }
 
 function reducer(s, a) {
+  return keepOnData(step(s, a))
+}
+
+// After any change (new region, other band, other layers), never leave a blank date on screen.
+function keepOnData(s) {
+  if (!s.region) return s
+  const ok = visitsWithData(s.region, s.layers)
+  const frame = nearestWithData(ok, s.frame)
+  const blinkA = nearestWithData(ok, s.blinkA), blinkB = nearestWithData(ok, s.blinkB)
+  return frame === s.frame && blinkA === s.blinkA && blinkB === s.blinkB ? s : { ...s, frame, blinkA, blinkB }
+}
+
+function step(s, a) {
   switch (a.type) {
     case 'set':
       return { ...s, ...a.patch }
     case 'regionLoaded': {
       const n = a.meta.visits.length
       const det = a.det && a.meta.detectors.some((d) => d.det === a.det) ? a.det : a.meta.detectors[0].det
+      const layers = a.layers || [makeLayer(det)]
+      const ok = visitsWithData(a.meta, layers)
+      const first = Math.max(0, ok.indexOf(true)), last = Math.max(0, ok.lastIndexOf(true))
       return {
         ...s, region: a.meta, frames: a.frames, status: 'ready', error: '',
-        layers: a.layers || [makeLayer(det)],
-        frame: 0, range: [0, n - 1], blinkA: 0, blinkB: n - 1, blinkPhase: 0,
+        layers,
+        frame: first, range: [0, n - 1], blinkA: first, blinkB: last, blinkPhase: 0,
         playing: n > 1, track: null, curvePoint: null, mode: a.mode || 'animate', search: false,
+        spectrum: a.meta.spectrum ? { status: 'ready', data: a.meta.spectrum, label: a.meta.target?.name || a.meta.name } : null,
       }
     }
     case 'tick':
       if (s.mode === 'blink') return { ...s, blinkPhase: 1 - s.blinkPhase }
-      return { ...s, frame: s.frame >= s.range[1] || s.frame < s.range[0] ? s.range[0] : s.frame + 1 }
+      if (!s.region) return s
+      return { ...s, frame: stepWithData(visitsWithData(s.region, s.layers), s.frame, 1, s.range, true) }
     case 'step': {
-      const n = s.region?.visits.length || 1
-      return { ...s, playing: false, frame: Math.min(n - 1, Math.max(0, s.frame + a.d)) }
+      if (!s.region) return s
+      const n = s.region.visits.length
+      return { ...s, playing: false, frame: stepWithData(visitsWithData(s.region, s.layers), s.frame, a.d, [0, n - 1], false) }
     }
     case 'layer':
       return { ...s, layers: s.layers.map((l) => (l.id === a.id ? { ...l, ...a.patch } : l)) }
@@ -113,7 +136,7 @@ export default function App() {
     set({ focus: { ra, dec, fov, projection, n: Date.now() } })
   }, [set])
 
-  const openRegion = useCallback(async (loader, extra = {}) => {
+  const openRegion = useCallback(async (loader, extra = {}, onError) => {
     const seq = ++loadSeq.current
     set({ status: 'loading', error: '' })
     try {
@@ -124,6 +147,7 @@ export default function App() {
       focusSky(meta.ra, meta.dec, Math.max(0.4, meta.fov_deg * 5), 'SIN')
     } catch (e) {
       if (seq !== loadSeq.current) return
+      if (onError?.(e)) return
       set({ status: 'error', error: e.message })
     }
   }, [set, focusSky])
@@ -142,15 +166,34 @@ export default function App() {
     return best
   }, [s.index])
 
+  // When the live service is missing or down, fall back to the regions saved with the site
+  // (built from data/irsa_snapshot), so a click never ends in a dead end.
+  const fallBackToSaved = useCallback((ra, dec, why, extra = {}) => {
+    const near = nearestPreset(ra, dec, SAVED_FALLBACK_DEG)
+    if (near) {
+      toast(`${why} Showing the saved copy of ${near.name}${near.d > 0.02 ? `, ${(near.d * 60).toFixed(0)}′ from where you clicked` : ''}.`)
+      selectTarget(near.slug, extra)
+      return true
+    }
+    set({ status: s.region ? 'ready' : 'idle', error: '' })
+    toast(`${why} These patches are saved and work offline: ${s.index.map((t) => t.name).join(', ')}.`)
+    return true
+  }, [nearestPreset, selectTarget, set, toast, s.region, s.index])
+
+  const openLive = useCallback((ra, dec, fov, name, extra = {}) => {
+    if (!hasApi) {
+      fallBackToSaved(ra, dec, 'Opening a new patch needs our live service, which is not connected on this copy.', extra)
+      return
+    }
+    openRegion(() => loadLive({ ra, dec, fov, dets: [1, 3, 5], name }), extra,
+      (e) => e.unreachable && fallBackToSaved(ra, dec, 'Our live service is not answering right now.', extra))
+  }, [openRegion, fallBackToSaved])
+
   const cropAt = useCallback((ra, dec, name) => {
     const preset = nearestPreset(ra, dec, s.cropFov / 2 + 0.03)
     if (preset) { selectTarget(preset.slug); return }
-    if (!hasApi) {
-      toast('Live SPHEREx search runs on our API (beta), which is not connected here. Try one of the 5 test targets.')
-      return
-    }
-    openRegion(() => loadLive({ ra, dec, fov: s.cropFov, dets: [1, 3, 5], name }))
-  }, [nearestPreset, s.cropFov, selectTarget, openRegion, toast])
+    openLive(ra, dec, s.cropFov, name)
+  }, [nearestPreset, s.cropFov, selectTarget, openLive])
 
   const search = useCallback(async (text) => {
     const q = text.trim()
@@ -160,12 +203,16 @@ export default function App() {
     if (preset) { selectTarget(preset.slug); return }
     const c = parseCoords(q)
     if (c) { focusSky(c.ra, c.dec, 0.5, 'SIN'); cropAt(c.ra, c.dec); return }
-    if (!hasApi) { toast(`"${q}" is not one of the test targets. Enter RA/Dec, e.g. 08h55m10.8s -7d14m42s`); return }
+    if (!hasApi) { toast(`We could not find "${q}". Try coordinates instead, like 08h55m10.8s -7d14m42s.`); return }
     try {
       const r = await resolveName(q)
       focusSky(r.ra_now, r.dec_now, 0.5, 'SIN')
       cropAt(r.ra_now, r.dec_now, q)
-    } catch (e) { toast(e.message) }
+    } catch (e) {
+      toast(e.unreachable
+        ? `We can't look names up right now. Coordinates still work, and so do the saved patches: ${s.index.map((t) => t.name).join(', ')}.`
+        : e.message)
+    }
   }, [s.index, selectTarget, focusSky, cropAt, toast])
 
   // index + URL on start
@@ -176,7 +223,7 @@ export default function App() {
     if (u0.slice !== undefined) set({ slice: u0.slice })
     loadIndex().then((index) => set({ index })).catch(() => set({ index: [] }))
     try {
-      if (!localStorage.getItem('skyblink-intro')) set({ intro: true })
+      if (!localStorage.getItem('cosmosight-intro')) set({ intro: true })
     } catch { /* storage blocked */ }
   }, [set])
 
@@ -195,11 +242,10 @@ export default function App() {
     } else if (u.coords) {
       const preset = nearestPreset(u.coords.ra, u.coords.dec, 0.07)
       if (preset) openRegion(() => loadPrebaked(preset.slug), { ...extra, det: extra.det ?? preset.default_det })
-      else if (hasApi) openRegion(() => loadLive({ ...u.coords, fov: u.fov || 0.08, dets: [1, 3, 5] }), extra)
-      else focusSky(u.coords.ra, u.coords.dec, 0.5, 'SIN')
+      else { focusSky(u.coords.ra, u.coords.dec, 0.5, 'SIN'); openLive(u.coords.ra, u.coords.dec, u.fov || 0.08, undefined, extra) }
       set({ intro: false })
     }
-  }, [s.index, set, openRegion, nearestPreset, focusSky])
+  }, [s.index, set, openRegion, nearestPreset, focusSky, openLive])
 
   useEffect(() => { writeUrl(s) }, [s.region, s.layers, s.mode, s.fps, s.survey, s.slice]) // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -221,9 +267,10 @@ export default function App() {
       else if (k === 'ArrowLeft') dispatch({ type: 'step', d: -1 })
       else if (k === 'b' || k === 'B') set({ mode: 'blink', playing: true })
       else if (k === 'a' || k === 'A') set({ mode: 'animate' })
-      else if (k === 'd' || k === 'D') set({ mode: 'diff' })
+      else if (k === 'd' || k === 'D') set({ mode: 'diff', playing: false, ...(s.frame === 0 && (s.region?.visits.length || 0) > 1 ? { frame: 1 } : {}) })
       else if (k === 'c' || k === 'C') set({ tool: s.tool === 'crop' ? 'pan' : 'crop' })
       else if (k === 't' || k === 'T') set({ tool: 'track' })
+      else if (k === 's' || k === 'S') set({ tool: s.tool === 'spectrum' ? 'pan' : 'spectrum' })
       else if (k === 'l' || k === 'L') set({ drawer: !s.drawer })
       else if (k === '/') { e.preventDefault(); set({ search: true }) }
       else if (k === 'Escape') set({ search: false, drawer: false, intro: false, tool: 'pan' })
@@ -236,12 +283,24 @@ export default function App() {
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
-  }, [s.playing, s.tool, s.drawer, s.fps, s.layers, s.region, set])
+  }, [s.playing, s.tool, s.drawer, s.fps, s.layers, s.region, s.frame, set])
 
   const primaryDet = () => {
     const vis = s.layers.filter((l) => l.visible)
     return (vis[vis.length - 1] || s.layers[s.layers.length - 1])?.det
   }
+
+  const specSeq = useRef(0)
+  const loadSpectrum = useCallback(async (ra, dec, label) => {
+    const seq = ++specSeq.current
+    set({ spectrum: { status: 'loading', label }, tab: 'spectrum' })
+    try {
+      const data = await skySpectrum(ra, dec)
+      if (seq === specSeq.current) set({ spectrum: { status: 'ready', data, label } })
+    } catch (e) {
+      if (seq === specSeq.current) set({ spectrum: { status: 'error', label, error: `Could not read the SPHEREx cube on AWS (${e.message}).` } })
+    }
+  }, [set])
 
   const onPick = useCallback((x, y) => {
     if (!s.region) return
@@ -249,8 +308,11 @@ export default function App() {
     if (s.tool === 'track') {
       const det = primaryDet()
       const path = trackSource(s.region, s.frames, det, idx, x, y)
-      if (!path) toast('No star found there. Click closer to a bright dot.')
+      if (!path) toast('Nothing bright enough there to follow. Try clicking right on a star.')
       set({ track: path })
+    } else if (s.tool === 'spectrum') {
+      const p = pixToSky(s.region, x, y)
+      loadSpectrum(p.ra, p.dec, 'Clicked pixel')
     } else if (s.tool === 'curve') {
       set({ curvePoint: [x, y], tab: 'curve' })
     }
@@ -261,7 +323,7 @@ export default function App() {
     const idx = currentVisitIndex(s)
     const p = s.region.target.px[s.region.visits[idx].id]
     const path = trackSource(s.region, s.frames, primaryDet(), idx, p[0], p[1])
-    if (!path) toast('The target is too faint in this band to track. Try another detector.')
+    if (!path) toast('The target is too faint at this wavelength to follow. Try another one under Wavelengths.')
     set({ track: path, overlays: { ...s.overlays, target: true } })
   }, [s, set, toast]) // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -269,20 +331,21 @@ export default function App() {
     const stage = stageRef.current
     if (!stage || !s.region) return
     const v = s.region.visits
-    const idxs = s.mode === 'blink' ? [s.blinkA, s.blinkB] : Array.from({ length: s.range[1] - s.range[0] + 1 }, (_, i) => s.range[0] + i)
+    const ok = visitsWithData(s.region, s.layers)
+    const idxs = s.mode === 'blink' ? [s.blinkA, s.blinkB] : Array.from({ length: s.range[1] - s.range[0] + 1 }, (_, i) => s.range[0] + i).filter((i) => ok[i])
     const det = primaryDet()
     const frames = idxs.map((i) => stage.snapshot(
       { visitId: v[i].id, layers: s.layers, mode: s.mode === 'blink' ? 'animate' : s.mode, overlays: s.overlays, track: s.track, curvePoint: s.curvePoint, blend: s.blend },
       `${s.region.name} · ${v[i].date} · D${det}${s.mode === 'diff' ? ' difference' : ''}${s.region.simulated ? ' · SIMULATED' : ''}`,
     ))
     const delay = s.mode === 'blink' ? s.blinkMs : Math.round(1000 / s.fps)
-    downloadGif(frames, delay, `${s.region.slug || 'region'}-${s.mode}.gif`)
+    downloadGif(frames, delay, `cosmosight-${s.region.slug || 'patch'}-${s.mode}.gif`)
   }, [s]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const onEarth = useCallback(({ ra, dec, label }) => {
     focusSky(ra, dec, 180, 'SIN')
     set({ search: false })
-    toast(`Sky overhead from ${label}. The edge of the map is your horizon.`)
+    toast(`This is the sky above ${label}. The edge of the map is your horizon.`)
   }, [focusSky, set, toast])
 
   return (
@@ -302,6 +365,8 @@ export default function App() {
             survey={s.survey} slice={s.slice} focus={s.focus} region={s.region} targets={s.index}
             cropMode={s.tool === 'crop'} cropFov={s.cropFov}
             onCrop={(ra, dec) => { set({ tool: 'pan' }); cropAt(ra, dec) }} onPickTarget={(slug) => selectTarget(slug)}
+            spectrumMode={s.tool === 'spectrum'} specPoint={s.spectrum?.data}
+            onSpectrum={(ra, dec) => loadSpectrum(ra, dec, 'Sky map point')}
           />
           <LayersDrawer open={s.drawer} s={s} dispatch={dispatch} set={set} />
           {s.toast && <div className="toast" role="status">{s.toast}</div>}
@@ -312,7 +377,7 @@ export default function App() {
       </main>
       {s.intro && (
         <Onboarding index={s.index} onStart={(slug) => {
-          try { localStorage.setItem('skyblink-intro', '1') } catch { /* storage blocked */ }
+          try { localStorage.setItem('cosmosight-intro', '1') } catch { /* storage blocked */ }
           set({ intro: false })
           if (slug) selectTarget(slug)
         }} />

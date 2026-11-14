@@ -11,7 +11,7 @@
  "width": 47,
  "height": 47,
  "release": "spherex_dr1 + spherex_dr1_deep + spherex_qr3 + spherex_qr3_deep",
- "generated_utc": "2026-11-14T19:21:33Z",
+ "generated_utc": "2026-11-14T22:10:20Z",
  "wcs": {
   "crval": [
    269.4463750927921,
@@ -60,7 +60,7 @@
      "n_exp": 6,
      "wl_um": 1.331,
      "bw_um": 0.0319,
-     "flag_frac": 0.0278,
+     "flag_frac": 0.0261,
      "mask": "D2_v1_mask.png",
      "masked_frac": 0.019
     },
@@ -68,8 +68,8 @@
      "png": "D2_v2.png",
      "n_exp": 6,
      "wl_um": 1.3,
-     "bw_um": 0.0312,
-     "flag_frac": 0.0378,
+     "bw_um": 0.0313,
+     "flag_frac": 0.0369,
      "mask": "D2_v2_mask.png",
      "masked_frac": 0.0208,
      "diff": "D2_v2_diff.png"
@@ -79,7 +79,7 @@
      "n_exp": 6,
      "wl_um": 1.423,
      "bw_um": 0.0346,
-     "flag_frac": 0.0473,
+     "flag_frac": 0.0412,
      "mask": "D2_v3_mask.png",
      "masked_frac": 0.019,
      "diff": "D2_v3_diff.png"
@@ -103,9 +103,9 @@
     "v1": {
      "png": "D4_v1.png",
      "n_exp": 6,
-     "wl_um": 2.745,
+     "wl_um": 2.744,
      "bw_um": 0.0771,
-     "flag_frac": 0.0327,
+     "flag_frac": 0.0309,
      "mask": "D4_v1_mask.png",
      "masked_frac": 0.0272
     },
@@ -113,8 +113,8 @@
      "png": "D4_v2.png",
      "n_exp": 6,
      "wl_um": 3.022,
-     "bw_um": 0.0867,
-     "flag_frac": 0.1087,
+     "bw_um": 0.0868,
+     "flag_frac": 0.1045,
      "mask": "D4_v2_mask.png",
      "masked_frac": 0.0254,
      "diff": "D4_v2_diff.png"
@@ -124,7 +124,7 @@
      "n_exp": 6,
      "wl_um": 2.899,
      "bw_um": 0.0831,
-     "flag_frac": 0.0346,
+     "flag_frac": 0.0322,
      "mask": "D4_v3_mask.png",
      "masked_frac": 0.0326,
      "diff": "D4_v3_diff.png"
@@ -150,7 +150,7 @@
      "n_exp": 6,
      "wl_um": 4.733,
      "bw_um": 0.0368,
-     "flag_frac": 0.0245,
+     "flag_frac": 0.0234,
      "mask": "D6_v1_mask.png",
      "masked_frac": 0.0081
     },
@@ -159,15 +159,15 @@
      "n_exp": 6,
      "wl_um": 4.636,
      "bw_um": 0.0371,
-     "flag_frac": 0.0227,
+     "flag_frac": 0.0231,
      "diff": "D6_v2_diff.png"
     },
     "v3": {
      "png": "D6_v3.png",
      "n_exp": 6,
-     "wl_um": 4.716,
+     "wl_um": 4.715,
      "bw_um": 0.0365,
-     "flag_frac": 0.0435,
+     "flag_frac": 0.0402,
      "mask": "D6_v3_mask.png",
      "masked_frac": 0.0059,
      "diff": "D6_v3_diff.png"
@@ -4211,5 +4211,839 @@
   "4": "wings: ring 6-9 px around a saturated core",
   "6": "wings: ring 3-6 px around a saturated core"
  },
- "notes": []
+ "spectrum": {
+  "ra": 269.4463750927921,
+  "dec": 4.768645662032073,
+  "unit": "MJy/sr",
+  "tile": 7945,
+  "col": 98,
+  "row": 103,
+  "pixel_arcsec": 12.88,
+  "source": "s3://nasa-irsa-spherex/dr1/hips5_cube/hips_20261026",
+  "points": [
+   {
+    "plane": 1,
+    "det": 1,
+    "wl_um": 0.753,
+    "bw_um": 0.018,
+    "value": null,
+    "nhits": 0
+   },
+   {
+    "plane": 2,
+    "det": 1,
+    "wl_um": 0.771,
+    "bw_um": 0.019,
+    "value": null,
+    "nhits": 0
+   },
+   {
+    "plane": 3,
+    "det": 1,
+    "wl_um": 0.79,
+    "bw_um": 0.019,
+    "value": null,
+    "nhits": 0
+   },
+   {
+    "plane": 4,
+    "det": 1,
+    "wl_um": 0.809,
+    "bw_um": 0.02,
+    "value": null,
+    "nhits": 0
+   },
+   {
+    "plane": 5,
+    "det": 1,
+    "wl_um": 0.828,
+    "bw_um": 0.02,
+    "value": null,
+    "nhits": 0
+   },
+   {
+    "plane": 6,
+    "det": 1,
+    "wl_um": 0.848,
+    "bw_um": 0.021,
+    "value": null,
+    "nhits": 0
+   },
+   {
+    "plane": 7,
+    "det": 1,
+    "wl_um": 0.868,
+    "bw_um": 0.022,
+    "value": null,
+    "nhits": 0
+   },
+   {
+    "plane": 8,
+    "det": 1,
+    "wl_um": 0.889,
+    "bw_um": 0.023,
+    "value": null,
+    "nhits": 0
+   },
+   {
+    "plane": 9,
+    "det": 1,
+    "wl_um": 0.91,
+    "bw_um": 0.023,
+    "value": null,
+    "nhits": 0
+   },
+   {
+    "plane": 10,
+    "det": 1,
+    "wl_um": 0.932,
+    "bw_um": 0.024,
+    "value": null,
+    "nhits": 0
+   },
+   {
+    "plane": 11,
+    "det": 1,
+    "wl_um": 0.955,
+    "bw_um": 0.025,
+    "value": null,
+    "nhits": 0
+   },
+   {
+    "plane": 12,
+    "det": 1,
+    "wl_um": 0.978,
+    "bw_um": 0.026,
+    "value": null,
+    "nhits": 0
+   },
+   {
+    "plane": 13,
+    "det": 1,
+    "wl_um": 1.001,
+    "bw_um": 0.026,
+    "value": null,
+    "nhits": 0
+   },
+   {
+    "plane": 14,
+    "det": 1,
+    "wl_um": 1.025,
+    "bw_um": 0.027,
+    "value": null,
+    "nhits": 0
+   },
+   {
+    "plane": 15,
+    "det": 1,
+    "wl_um": 1.05,
+    "bw_um": 0.028,
+    "value": null,
+    "nhits": 0
+   },
+   {
+    "plane": 16,
+    "det": 1,
+    "wl_um": 1.075,
+    "bw_um": 0.029,
+    "value": null,
+    "nhits": 0
+   },
+   {
+    "plane": 17,
+    "det": 1,
+    "wl_um": 1.102,
+    "bw_um": 0.03,
+    "value": null,
+    "nhits": 0
+   },
+   {
+    "plane": 18,
+    "det": 2,
+    "wl_um": 1.113,
+    "bw_um": 0.026,
+    "value": null,
+    "nhits": 0
+   },
+   {
+    "plane": 19,
+    "det": 2,
+    "wl_um": 1.139,
+    "bw_um": 0.027,
+    "value": null,
+    "nhits": 0
+   },
+   {
+    "plane": 20,
+    "det": 2,
+    "wl_um": 1.167,
+    "bw_um": 0.028,
+    "value": null,
+    "nhits": 0
+   },
+   {
+    "plane": 21,
+    "det": 2,
+    "wl_um": 1.195,
+    "bw_um": 0.029,
+    "value": null,
+    "nhits": 0
+   },
+   {
+    "plane": 22,
+    "det": 2,
+    "wl_um": 1.224,
+    "bw_um": 0.03,
+    "value": null,
+    "nhits": 0
+   },
+   {
+    "plane": 23,
+    "det": 2,
+    "wl_um": 1.254,
+    "bw_um": 0.03,
+    "value": null,
+    "nhits": 0
+   },
+   {
+    "plane": 24,
+    "det": 2,
+    "wl_um": 1.284,
+    "bw_um": 0.031,
+    "value": null,
+    "nhits": 0
+   },
+   {
+    "plane": 25,
+    "det": 2,
+    "wl_um": 1.315,
+    "bw_um": 0.032,
+    "value": null,
+    "nhits": 0
+   },
+   {
+    "plane": 26,
+    "det": 2,
+    "wl_um": 1.346,
+    "bw_um": 0.032,
+    "value": null,
+    "nhits": 0
+   },
+   {
+    "plane": 27,
+    "det": 2,
+    "wl_um": 1.378,
+    "bw_um": 0.033,
+    "value": null,
+    "nhits": 0
+   },
+   {
+    "plane": 28,
+    "det": 2,
+    "wl_um": 1.412,
+    "bw_um": 0.034,
+    "value": null,
+    "nhits": 0
+   },
+   {
+    "plane": 29,
+    "det": 2,
+    "wl_um": 1.446,
+    "bw_um": 0.035,
+    "value": null,
+    "nhits": 0
+   },
+   {
+    "plane": 30,
+    "det": 2,
+    "wl_um": 1.481,
+    "bw_um": 0.036,
+    "value": null,
+    "nhits": 0
+   },
+   {
+    "plane": 31,
+    "det": 2,
+    "wl_um": 1.517,
+    "bw_um": 0.037,
+    "value": null,
+    "nhits": 0
+   },
+   {
+    "plane": 32,
+    "det": 2,
+    "wl_um": 1.554,
+    "bw_um": 0.038,
+    "value": null,
+    "nhits": 0
+   },
+   {
+    "plane": 33,
+    "det": 2,
+    "wl_um": 1.592,
+    "bw_um": 0.039,
+    "value": null,
+    "nhits": 0
+   },
+   {
+    "plane": 34,
+    "det": 2,
+    "wl_um": 1.631,
+    "bw_um": 0.039,
+    "value": null,
+    "nhits": 0
+   },
+   {
+    "plane": 35,
+    "det": 3,
+    "wl_um": 1.656,
+    "bw_um": 0.039,
+    "value": null,
+    "nhits": 0
+   },
+   {
+    "plane": 36,
+    "det": 3,
+    "wl_um": 1.695,
+    "bw_um": 0.041,
+    "value": null,
+    "nhits": 0
+   },
+   {
+    "plane": 37,
+    "det": 3,
+    "wl_um": 1.735,
+    "bw_um": 0.042,
+    "value": null,
+    "nhits": 0
+   },
+   {
+    "plane": 38,
+    "det": 3,
+    "wl_um": 1.775,
+    "bw_um": 0.043,
+    "value": null,
+    "nhits": 0
+   },
+   {
+    "plane": 39,
+    "det": 3,
+    "wl_um": 1.818,
+    "bw_um": 0.045,
+    "value": null,
+    "nhits": 0
+   },
+   {
+    "plane": 40,
+    "det": 3,
+    "wl_um": 1.861,
+    "bw_um": 0.046,
+    "value": null,
+    "nhits": 0
+   },
+   {
+    "plane": 41,
+    "det": 3,
+    "wl_um": 1.905,
+    "bw_um": 0.047,
+    "value": null,
+    "nhits": 0
+   },
+   {
+    "plane": 42,
+    "det": 3,
+    "wl_um": 1.949,
+    "bw_um": 0.048,
+    "value": null,
+    "nhits": 0
+   },
+   {
+    "plane": 43,
+    "det": 3,
+    "wl_um": 1.995,
+    "bw_um": 0.049,
+    "value": null,
+    "nhits": 0
+   },
+   {
+    "plane": 44,
+    "det": 3,
+    "wl_um": 2.041,
+    "bw_um": 0.051,
+    "value": null,
+    "nhits": 0
+   },
+   {
+    "plane": 45,
+    "det": 3,
+    "wl_um": 2.089,
+    "bw_um": 0.052,
+    "value": null,
+    "nhits": 0
+   },
+   {
+    "plane": 46,
+    "det": 3,
+    "wl_um": 2.139,
+    "bw_um": 0.054,
+    "value": null,
+    "nhits": 0
+   },
+   {
+    "plane": 47,
+    "det": 3,
+    "wl_um": 2.189,
+    "bw_um": 0.055,
+    "value": null,
+    "nhits": 0
+   },
+   {
+    "plane": 48,
+    "det": 3,
+    "wl_um": 2.24,
+    "bw_um": 0.056,
+    "value": null,
+    "nhits": 0
+   },
+   {
+    "plane": 49,
+    "det": 3,
+    "wl_um": 2.292,
+    "bw_um": 0.057,
+    "value": null,
+    "nhits": 0
+   },
+   {
+    "plane": 50,
+    "det": 3,
+    "wl_um": 2.345,
+    "bw_um": 0.058,
+    "value": null,
+    "nhits": 0
+   },
+   {
+    "plane": 51,
+    "det": 3,
+    "wl_um": 2.399,
+    "bw_um": 0.059,
+    "value": null,
+    "nhits": 0
+   },
+   {
+    "plane": 52,
+    "det": 4,
+    "wl_um": 2.445,
+    "bw_um": 0.058,
+    "value": null,
+    "nhits": 0
+   },
+   {
+    "plane": 53,
+    "det": 4,
+    "wl_um": 2.506,
+    "bw_um": 0.073,
+    "value": null,
+    "nhits": 0
+   },
+   {
+    "plane": 54,
+    "det": 4,
+    "wl_um": 2.575,
+    "bw_um": 0.074,
+    "value": null,
+    "nhits": 0
+   },
+   {
+    "plane": 55,
+    "det": 4,
+    "wl_um": 2.646,
+    "bw_um": 0.076,
+    "value": null,
+    "nhits": 0
+   },
+   {
+    "plane": 56,
+    "det": 4,
+    "wl_um": 2.719,
+    "bw_um": 0.078,
+    "value": null,
+    "nhits": 0
+   },
+   {
+    "plane": 57,
+    "det": 4,
+    "wl_um": 2.794,
+    "bw_um": 0.079,
+    "value": null,
+    "nhits": 0
+   },
+   {
+    "plane": 58,
+    "det": 4,
+    "wl_um": 2.871,
+    "bw_um": 0.084,
+    "value": null,
+    "nhits": 0
+   },
+   {
+    "plane": 59,
+    "det": 4,
+    "wl_um": 2.951,
+    "bw_um": 0.086,
+    "value": null,
+    "nhits": 0
+   },
+   {
+    "plane": 60,
+    "det": 4,
+    "wl_um": 3.033,
+    "bw_um": 0.089,
+    "value": null,
+    "nhits": 0
+   },
+   {
+    "plane": 61,
+    "det": 4,
+    "wl_um": 3.118,
+    "bw_um": 0.091,
+    "value": null,
+    "nhits": 0
+   },
+   {
+    "plane": 62,
+    "det": 4,
+    "wl_um": 3.204,
+    "bw_um": 0.093,
+    "value": null,
+    "nhits": 0
+   },
+   {
+    "plane": 63,
+    "det": 4,
+    "wl_um": 3.293,
+    "bw_um": 0.094,
+    "value": null,
+    "nhits": 0
+   },
+   {
+    "plane": 64,
+    "det": 4,
+    "wl_um": 3.383,
+    "bw_um": 0.096,
+    "value": null,
+    "nhits": 0
+   },
+   {
+    "plane": 65,
+    "det": 4,
+    "wl_um": 3.476,
+    "bw_um": 0.098,
+    "value": null,
+    "nhits": 0
+   },
+   {
+    "plane": 66,
+    "det": 4,
+    "wl_um": 3.57,
+    "bw_um": 0.099,
+    "value": null,
+    "nhits": 0
+   },
+   {
+    "plane": 67,
+    "det": 4,
+    "wl_um": 3.667,
+    "bw_um": 0.102,
+    "value": null,
+    "nhits": 0
+   },
+   {
+    "plane": 68,
+    "det": 4,
+    "wl_um": 3.768,
+    "bw_um": 0.103,
+    "value": null,
+    "nhits": 0
+   },
+   {
+    "plane": 69,
+    "det": 5,
+    "wl_um": 3.833,
+    "bw_um": 0.035,
+    "value": null,
+    "nhits": 0
+   },
+   {
+    "plane": 70,
+    "det": 5,
+    "wl_um": 3.867,
+    "bw_um": 0.036,
+    "value": null,
+    "nhits": 0
+   },
+   {
+    "plane": 71,
+    "det": 5,
+    "wl_um": 3.901,
+    "bw_um": 0.036,
+    "value": null,
+    "nhits": 0
+   },
+   {
+    "plane": 72,
+    "det": 5,
+    "wl_um": 3.935,
+    "bw_um": 0.036,
+    "value": null,
+    "nhits": 0
+   },
+   {
+    "plane": 73,
+    "det": 5,
+    "wl_um": 3.97,
+    "bw_um": 0.036,
+    "value": null,
+    "nhits": 0
+   },
+   {
+    "plane": 74,
+    "det": 5,
+    "wl_um": 4.005,
+    "bw_um": 0.036,
+    "value": null,
+    "nhits": 0
+   },
+   {
+    "plane": 75,
+    "det": 5,
+    "wl_um": 4.04,
+    "bw_um": 0.037,
+    "value": null,
+    "nhits": 0
+   },
+   {
+    "plane": 76,
+    "det": 5,
+    "wl_um": 4.076,
+    "bw_um": 0.037,
+    "value": null,
+    "nhits": 0
+   },
+   {
+    "plane": 77,
+    "det": 5,
+    "wl_um": 4.112,
+    "bw_um": 0.037,
+    "value": null,
+    "nhits": 0
+   },
+   {
+    "plane": 78,
+    "det": 5,
+    "wl_um": 4.148,
+    "bw_um": 0.037,
+    "value": null,
+    "nhits": 0
+   },
+   {
+    "plane": 79,
+    "det": 5,
+    "wl_um": 4.184,
+    "bw_um": 0.037,
+    "value": null,
+    "nhits": 0
+   },
+   {
+    "plane": 80,
+    "det": 5,
+    "wl_um": 4.22,
+    "bw_um": 0.037,
+    "value": null,
+    "nhits": 0
+   },
+   {
+    "plane": 81,
+    "det": 5,
+    "wl_um": 4.257,
+    "bw_um": 0.037,
+    "value": null,
+    "nhits": 0
+   },
+   {
+    "plane": 82,
+    "det": 5,
+    "wl_um": 4.294,
+    "bw_um": 0.037,
+    "value": 161.95992,
+    "nhits": 1
+   },
+   {
+    "plane": 83,
+    "det": 5,
+    "wl_um": 4.331,
+    "bw_um": 0.037,
+    "value": null,
+    "nhits": 0
+   },
+   {
+    "plane": 84,
+    "det": 5,
+    "wl_um": 4.368,
+    "bw_um": 0.038,
+    "value": null,
+    "nhits": 0
+   },
+   {
+    "plane": 85,
+    "det": 5,
+    "wl_um": 4.405,
+    "bw_um": 0.038,
+    "value": 111.23437,
+    "nhits": 1
+   },
+   {
+    "plane": 86,
+    "det": 6,
+    "wl_um": 4.435,
+    "bw_um": 0.035,
+    "value": 64.16599,
+    "nhits": 1
+   },
+   {
+    "plane": 87,
+    "det": 6,
+    "wl_um": 4.467,
+    "bw_um": 0.036,
+    "value": null,
+    "nhits": 0
+   },
+   {
+    "plane": 88,
+    "det": 6,
+    "wl_um": 4.5,
+    "bw_um": 0.035,
+    "value": null,
+    "nhits": 0
+   },
+   {
+    "plane": 89,
+    "det": 6,
+    "wl_um": 4.533,
+    "bw_um": 0.036,
+    "value": 147.41945,
+    "nhits": 1
+   },
+   {
+    "plane": 90,
+    "det": 6,
+    "wl_um": 4.566,
+    "bw_um": 0.036,
+    "value": null,
+    "nhits": 0
+   },
+   {
+    "plane": 91,
+    "det": 6,
+    "wl_um": 4.6,
+    "bw_um": 0.037,
+    "value": null,
+    "nhits": 0
+   },
+   {
+    "plane": 92,
+    "det": 6,
+    "wl_um": 4.635,
+    "bw_um": 0.036,
+    "value": null,
+    "nhits": 0
+   },
+   {
+    "plane": 93,
+    "det": 6,
+    "wl_um": 4.669,
+    "bw_um": 0.037,
+    "value": null,
+    "nhits": 0
+   },
+   {
+    "plane": 94,
+    "det": 6,
+    "wl_um": 4.704,
+    "bw_um": 0.037,
+    "value": null,
+    "nhits": 0
+   },
+   {
+    "plane": 95,
+    "det": 6,
+    "wl_um": 4.739,
+    "bw_um": 0.037,
+    "value": 167.76454,
+    "nhits": 1
+   },
+   {
+    "plane": 96,
+    "det": 6,
+    "wl_um": 4.773,
+    "bw_um": 0.036,
+    "value": 142.60641,
+    "nhits": 2
+   },
+   {
+    "plane": 97,
+    "det": 6,
+    "wl_um": 4.808,
+    "bw_um": 0.036,
+    "value": null,
+    "nhits": 0
+   },
+   {
+    "plane": 98,
+    "det": 6,
+    "wl_um": 4.843,
+    "bw_um": 0.037,
+    "value": 59.13718,
+    "nhits": 2
+   },
+   {
+    "plane": 99,
+    "det": 6,
+    "wl_um": 4.879,
+    "bw_um": 0.038,
+    "value": 58.35115,
+    "nhits": 2
+   },
+   {
+    "plane": 100,
+    "det": 6,
+    "wl_um": 4.915,
+    "bw_um": 0.038,
+    "value": null,
+    "nhits": 0
+   },
+   {
+    "plane": 101,
+    "det": 6,
+    "wl_um": 4.951,
+    "bw_um": 0.037,
+    "value": 652.46375,
+    "nhits": 4
+   },
+   {
+    "plane": 102,
+    "det": 6,
+    "wl_um": 4.988,
+    "bw_um": 0.037,
+    "value": 419.08676,
+    "nhits": 9
+   }
+  ]
+ },
+ "notes": [],
+ "pixel_sources": {
+  "s3": 54,
+  "irsa": 0,
+  "local": 0
+ },
+ "offline": false
 }

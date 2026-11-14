@@ -216,7 +216,7 @@ export class Stage {
         const p = star.px[vid]
         if (!p) continue
         const [x, y] = this.toScreen(p[0], p[1])
-        g.circle(x, y, Math.max(4, 1.8 * s)).stroke({ width: 1, color: star.pm > 100 ? COLORS.gaiaFast : COLORS.gaia, alpha: 0.65 })
+        g.circle(x, y, Math.max(3, 1.1 * s)).stroke({ width: 1, color: star.pm > 100 ? COLORS.gaiaFast : COLORS.gaia, alpha: 0.45 })
       }
     }
     if (o.target && meta.target?.px) {

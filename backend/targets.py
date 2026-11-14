@@ -60,9 +60,26 @@ TARGETS = [
 ]
 
 
+# Regions the site also ships ready-made, beyond the challenge's five test targets. They come from the
+# saved IRSA snapshot (data/irsa_snapshot), so they work even when IRSA and the API are down.
+EXTRAS = [
+    {
+        "slug": "m31", "name": "Andromeda Galaxy (M31)",
+        "aliases": ["m31", "andromeda", "andromeda galaxy", "ngc 224"],
+        "ra": 10.6847, "dec": 41.2687,              # galaxy centre, the position of the team's first IRSA query
+        "pmra": 0.0, "pmdec": 0.0, "plx": 0.0, "epoch": 2016.0,
+        "source": "galaxy centre (SIMBAD position used in the team's IRSA query)",
+        "dets": [1, 3, 5], "default_det": 1, "kind": "galaxy",
+        "blurb": "Our big neighbour galaxy, 2.5 million light-years away. Nothing here moves, which makes it a good control.",
+    },
+]
+
+ALL_REGIONS = TARGETS + EXTRAS
+
+
 def find_target(text):
     q = " ".join(text.lower().replace("_", " ").split())
-    for t in TARGETS:
+    for t in ALL_REGIONS:
         if q == t["slug"] or q in t["aliases"]:
             return t
     return None

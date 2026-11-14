@@ -17,11 +17,13 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from starlette.concurrency import run_in_threadpool
 
+import s3
 from astro import current_position, gaia_cone, resolve
 from config import CACHE_DIR, DETECTORS, FOV_DEFAULT_DEG, FOV_MAX_DEG, FOV_MIN_DEG, RELEASES
 from irsa import IrsaUnavailable
+import snapshot
 from pipeline import NoData, build_region
-from targets import TARGETS
+from targets import ALL_REGIONS
 
 REGIONS = CACHE_DIR / "regions"
 REGIONS.mkdir(parents=True, exist_ok=True)
@@ -34,12 +36,12 @@ app.mount("/files", StaticFiles(directory=REGIONS), name="files")
 
 @app.get("/api/health")
 def health():
-    return {"ok": True, "releases": RELEASES, "detectors": DETECTORS}
+    return {"ok": True, "releases": RELEASES, "detectors": DETECTORS, "saved_copy": snapshot.available()}
 
 
 @app.get("/api/targets")
 def targets():
-    return [{k: t[k] for k in ("slug", "name", "ra", "dec", "kind", "default_det", "blurb")} for t in TARGETS]
+    return [{k: t[k] for k in ("slug", "name", "ra", "dec", "kind", "default_det", "blurb")} for t in ALL_REGIONS]
 
 
 @app.get("/api/resolve")
@@ -54,6 +56,15 @@ def api_resolve(q: str = Query(..., min_length=1, max_length=120)):
 @app.get("/api/gaia")
 def api_gaia(ra: float, dec: float, radius: float = Query(0.05, gt=0, le=0.3)):
     return gaia_cone(ra, dec, radius)
+
+
+@app.get("/api/spectrum")
+async def api_spectrum(ra: float = Query(..., ge=0, lt=360), dec: float = Query(..., ge=-90, le=90)):
+    """102-band spectrum of any sky position, read from the SPHEREx all-sky cube on AWS S3."""
+    try:
+        return await run_in_threadpool(s3.spectrum, ra, dec)
+    except Exception as e:  # noqa: BLE001
+        raise HTTPException(503, f"Could not read the SPHEREx cube on AWS right now ({e}).")
 
 
 @app.get("/api/region")

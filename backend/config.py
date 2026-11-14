@@ -5,6 +5,7 @@ The one you will touch most is RELEASES. SPHEREx publishes new data often, and t
 challenge asks for a tool that is easy to update: when a new release comes out (DR2 is
 planned for late 2027), add its collection name to the front of that list and you are done.
 """
+import os
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent
@@ -16,6 +17,16 @@ CACHE_DIR = ROOT / "cache"            # FITS cutouts + rendered regions (git-ign
 # When the same exposure shows up in two collections we keep the first one listed here.
 # When DR2 ships, add "spherex_dr2" and "spherex_dr2_deep" at the front.
 RELEASES = ["spherex_dr1", "spherex_dr1_deep", "spherex_qr3", "spherex_qr3_deep"]
+
+# NASA's public SPHEREx bucket on AWS (Open Data, anonymous access). Pixels and spectra are read from here;
+# IRSA is still used to *find* which images cover a position. See backend/s3.py.
+S3_BUCKET = "nasa-irsa-spherex"
+S3_REGION = "us-east-1"
+S3_HTTPS = f"https://{S3_BUCKET}.s3.{S3_REGION}.amazonaws.com/"
+HIPS_CUBE_PREFIX = "dr1/hips5_cube/hips_20261026"   # all-sky 102-band cube; update when a new cube is published
+CUTOUT_SOURCES = ("s3", "irsa", "local")              # the bucket, then IRSA's cut-out service, then the saved copy
+# COSMOSIGHT_OFFLINE=1: no network at all, build regions only from data/irsa_snapshot (see backend/snapshot.py)
+OFFLINE = os.environ.get("COSMOSIGHT_OFFLINE") == "1"
 
 IRSA_BASE = "https://irsa.ipac.caltech.edu/"
 IRSA_TAP = "https://irsa.ipac.caltech.edu/TAP/sync"

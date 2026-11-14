@@ -7,3 +7,4 @@ pillow
 requests
 fastapi
 uvicorn[standard]
+s3fs

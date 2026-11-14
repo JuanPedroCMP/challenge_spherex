@@ -4,6 +4,8 @@
  * show the sky above a place on Earth (address or latitude/longitude, plus a time).
  */
 import { useState } from 'react'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faLocationDot, faMagnifyingGlass, faXmark } from '../lib/icons'
 import { geocode, zenith } from '../lib/earth'
 import { formatDec, formatRA } from '../lib/coords'
 
@@ -44,24 +46,29 @@ export default function SearchPanel({ index, onSearch, onTarget, onEarth, onClos
 
   return (
     <div className="search-panel" role="dialog" aria-label="Search">
-      <div className="tabs">
-        <button className={tab === 'sky' ? 'on' : ''} onClick={() => setTab('sky')}>Object or RA/Dec</button>
-        <button className={tab === 'earth' ? 'on' : ''} onClick={() => setTab('earth')}>Sky from a place on Earth</button>
-        <button className="close" onClick={onClose} aria-label="Close search">×</button>
+      <div className="tabs" role="tablist">
+        <button role="tab" aria-selected={tab === 'sky'} className={tab === 'sky' ? 'on' : ''} onClick={() => setTab('sky')}>
+          <FontAwesomeIcon icon={faMagnifyingGlass} /> A star or coordinates
+        </button>
+        <button role="tab" aria-selected={tab === 'earth'} className={tab === 'earth' ? 'on' : ''} onClick={() => setTab('earth')}>
+          <FontAwesomeIcon icon={faLocationDot} /> The sky above a place
+        </button>
+        <button className="icon-btn close" onClick={onClose} aria-label="Close search" title="Close (Esc)"><FontAwesomeIcon icon={faXmark} /></button>
       </div>
 
       {tab === 'sky' ? (
         <form onSubmit={submitSky}>
           <div className="row">
-            <input autoFocus value={q} onChange={(e) => setQ(e.target.value)} aria-label="Object name or coordinates"
-              placeholder="WISE 0855   ·   08h55m10.8s -7d14m42s   ·   133.795 -7.245" />
-            <button className="primary" type="submit">Go</button>
+            <input autoFocus value={q} onChange={(e) => setQ(e.target.value)} aria-label="Star name or coordinates"
+              placeholder="Barnard's Star, or 08h55m10.8s -7d14m42s, or 133.795 -7.245" />
+            <button className="primary" type="submit" disabled={!q.trim()}>Go</button>
           </div>
-          <p className="hint">Right Ascension then Declination, in hours/degrees (08h55m10.8s -7d14m42s, 08:55:10.8 -07:14:42) or decimal degrees.</p>
+          <p className="hint">Coordinates go Right Ascension first, then Declination. Hours and degrees (08h55m10.8s -7d14m42s or 08:55:10.8 -07:14:42) and plain degrees both work.</p>
+          <h3 className="eyebrow">Try one of these</h3>
           <div className="chips">
             {index.map((t) => (
               <button key={t.slug} type="button" className="chip" onClick={() => onTarget(t.slug)} title={t.blurb}>
-                {t.name}<small>{t.kind === 'variable' ? 'variable' : 'moving'}</small>
+                {t.name}<small>{t.kind === 'variable' ? 'changes brightness' : t.kind === 'galaxy' ? 'stays still' : 'moves'}</small>
               </button>
             ))}
           </div>
@@ -69,16 +76,19 @@ export default function SearchPanel({ index, onSearch, onTarget, onEarth, onClos
       ) : (
         <form onSubmit={submitEarth}>
           <div className="row">
-            <input value={place} onChange={(e) => setPlace(e.target.value)} placeholder="Address or city, e.g. São Paulo, Brazil" aria-label="Address" />
+            <input value={place} onChange={(e) => setPlace(e.target.value)} placeholder="A city or address, like São Paulo, Brazil" aria-label="City or address" />
           </div>
+          <p className="hint or">or exact coordinates</p>
           <div className="row">
-            <input value={lat} onChange={(e) => setLat(e.target.value)} placeholder="Latitude (-23.55)" aria-label="Latitude" />
-            <input value={lon} onChange={(e) => setLon(e.target.value)} placeholder="Longitude (-46.63)" aria-label="Longitude" />
+            <input value={lat} onChange={(e) => setLat(e.target.value)} placeholder="Latitude, e.g. -23.55" aria-label="Latitude" inputMode="decimal" />
+            <input value={lon} onChange={(e) => setLon(e.target.value)} placeholder="Longitude, e.g. -46.63" aria-label="Longitude" inputMode="decimal" />
             <input type="datetime-local" value={when} onChange={(e) => setWhen(e.target.value)} aria-label="Date and time" />
-            <button className="primary" type="submit" disabled={busy}>{busy ? '…' : 'Show sky'}</button>
           </div>
-          <p className="hint">Points the map at the zenith (straight up) for that place and time. Address lookup by OpenStreetMap Nominatim.</p>
-          {err && <p className="error">{err}</p>}
+          <div className="row end">
+            <button className="primary" type="submit" disabled={busy || (!place.trim() && (!lat || !lon))}>{busy ? 'Looking it up…' : 'Show that sky'}</button>
+          </div>
+          <p className="hint">The map turns to the point straight overhead, and its edge becomes your horizon. Addresses are looked up with OpenStreetMap.</p>
+          {err && <p className="error" role="alert">{err}</p>}
         </form>
       )}
     </div>

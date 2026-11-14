@@ -20,7 +20,8 @@ import imaging
 from astro import gaia_cone, mjd_to_date, propagate
 from config import (DETECTORS, FOV_MAX_DEG, FOV_MIN_DEG, MAX_EXP_PER_VISIT, MAX_VISITS, PIXSCALE_ARCSEC,
                     RELEASES, VISIT_GAP_DAYS, VISIT_MAX_SPAN_DAYS)
-from irsa import cutout_url, download_all, find_exposures
+import s3
+from irsa import fetch_cutouts, find_exposures
 
 
 class NoData(RuntimeError):
@@ -48,6 +49,45 @@ def group_visits(rows, gap_days=VISIT_GAP_DAYS, max_span=VISIT_MAX_SPAN_DAYS):
     return groups
 
 
+def _sky_spectrum(ra, dec, log):
+    """102-band spectrum at the region centre from the all-sky cube on AWS (None if S3 is unreachable)."""
+    try:
+        return s3.spectrum(ra, dec)
+    except Exception as e:  # noqa: BLE001 - the spectrum is a bonus, never block a region on it
+        log(f"  spectrum skipped: {e}")
+        return None
+
+
+def plan_visits(rows, dets):
+    """Time-ordered visits as [{det: [exposures]}], planned PER DETECTOR and then lined up.
+
+    SPHEREx's detectors look at different strips of sky at the same moment, so a given star is seen by
+    D1 in some weeks and by D3 in others (R Draconis: D1 in months 1-6 and 14-17, D3 in months 0-1
+    and 8-13). Grouping all detectors together left many visits with no image in the band on screen.
+    Instead each detector gets its own visits (up to MAX_VISITS), and visits of different detectors
+    whose middles are within VISIT_GAP_DAYS share one slot on the timeline.
+    """
+    windows = []
+    for det in dets:
+        mine = [r for r in rows if r["det"] == det]
+        # Deep-survey coverage (near the ecliptic poles SPHEREx looks almost every day): data in 12 or more
+        # different 10-day stretches. There, cut a visit at 30 days so a variable star gets more points.
+        dense = len({int(r["mjd"] // 10) for r in mine}) >= 12
+        for g in _spread(group_visits(mine, max_span=30 if dense else VISIT_MAX_SPAN_DAYS), MAX_VISITS):
+            windows.append((float(np.mean([r["mjd"] for r in g])), det, g))
+    windows.sort(key=lambda w: w[0])
+    clusters = []
+    for mid, det, g in windows:
+        last = clusters[-1] if clusters else None
+        if last and mid - last["mid"] <= VISIT_GAP_DAYS and det not in last["dets"]:
+            last["dets"][det] = g
+            last["mid"] = float(np.mean([m for m in last["mids"] + [mid]]))
+            last["mids"].append(mid)
+        else:
+            clusters.append({"mid": mid, "mids": [mid], "dets": {det: g}})
+    return [c["dets"] for c in clusters]
+
+
 def build_region(ra, dec, fov, dets, out_dir, name=None, slug=None, target=None, log=print):
     fov = float(np.clip(fov, FOV_MIN_DEG, FOV_MAX_DEG))
     grid, shape = imaging.make_grid(ra, dec, fov, PIXSCALE_ARCSEC)
@@ -58,16 +98,17 @@ def build_region(ra, dec, fov, dets, out_dir, name=None, slug=None, target=None,
     if not rows:
         raise NoData("No SPHEREx exposures cover this position yet.")
 
-    groups = _spread(group_visits(rows), MAX_VISITS)
     visits, jobs = [], []
-    for i, g in enumerate(groups):
+    for i, cluster in enumerate(plan_visits(rows, dets)):
         vid = f"v{i + 1}"
-        visits.append({"id": vid, "mjd": round(float(np.mean([r["mjd"] for r in g])), 4)})
-        for det in dets:
-            for r in _spread([r for r in g if r["det"] == det], MAX_EXP_PER_VISIT):
-                jobs.append((det, vid, cutout_url(r["url"], ra, dec, fov * 1.3)))
-    log(f"  {len(visits)} visits, downloading {len(jobs)} cutouts")
-    paths = download_all([j[2] for j in jobs], log=log)
+        visits.append({"id": vid, "mjd": round(float(np.mean([r["mjd"] for g in cluster.values() for r in g])), 4)})
+        for det, g in cluster.items():
+            for r in _spread(g, MAX_EXP_PER_VISIT):
+                jobs.append((det, vid, (r, ra, dec, fov * 1.3)))
+    log(f"  {len(visits)} visits, fetching {len(jobs)} cut-outs")
+    sources = {}
+    paths = fetch_cutouts([j[2] for j in jobs], log=log, stats=sources)
+    searched_offline = any(r.get("local") for r in rows)
 
     stacks = {}
     for (det, vid, _), p in zip(jobs, paths):
@@ -98,9 +139,14 @@ def build_region(ra, dec, fov, dets, out_dir, name=None, slug=None, target=None,
     if not frames:
         raise NoData("Cutouts could not be downloaded or read.")
 
-    return write_region(out_dir, name=name or f"RA {ra:.4f} Dec {dec:+.4f}", slug=slug, ra=ra, dec=dec, fov=fov,
+    meta = write_region(out_dir, name=name or f"RA {ra:.4f} Dec {dec:+.4f}", slug=slug, ra=ra, dec=dec, fov=fov,
                         grid=grid, shape=shape, visits=visits, frames=frames, target=target,
                         simulated=False, release=" + ".join(RELEASES), log=log)
+    # Where the pixels came from, so the app can say "offline copy" honestly.
+    meta["pixel_sources"] = sources
+    meta["offline"] = searched_offline or (sources.get("local", 0) > 0 and not sources.get("s3") and not sources.get("irsa"))
+    (Path(out_dir) / "meta.json").write_text(json.dumps(meta, indent=1))
+    return meta
 
 
 def write_region(out_dir, *, name, slug, ra, dec, fov, grid, shape, visits, frames, target, simulated, release,
@@ -197,6 +243,7 @@ def write_region(out_dir, *, name, slug, ra, dec, fov, grid, shape, visits, fram
         "photometry": photometry,
         "photometry_unit": "mJy",
         "photometry_mode": phot_modes,   # per detector; missing = normal 2 px aperture
+        "spectrum": _sky_spectrum(ra, dec, log),
         "notes": notes or [],
     }
     (out / "meta.json").write_text(json.dumps(meta, indent=1))

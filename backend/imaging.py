@@ -62,7 +62,10 @@ def load_exposure(path, ra, dec):
         img[bad] = np.nan
         # fobj + .celestial: the pattern from the IRSA mosaic tutorial (a header may point to other HDUs)
         w = WCS(h["IMAGE"].header, fobj=h).celestial
-        wl, bw = _wavelength(h, w, ra, dec)
+        if "SBWL" in h["IMAGE"].header:   # cut-out read from S3: wavelength was evaluated on the full image
+            wl, bw = h["IMAGE"].header["SBWL"], h["IMAGE"].header.get("SBBW")
+        else:
+            wl, bw = _wavelength(h, w, ra, dec)
     return {"img": img, "wcs": w, "flag_frac": float(bad.mean()), "wl_um": wl, "bw_um": bw}
 
 

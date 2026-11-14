@@ -37,6 +37,13 @@ The same `meta.json` comes from the prebake (`AstroDevs-FP/public/data/<slug>/me
   "photometry": { "6": { "v1": { "flux": 0.58, "err": 0.06 } } },             // aperture flux at target.px
   "photometry_unit": "mJy",                                                      // MJy/sr x 23.5045 x pixscale^2 / 1000
   "photometry_mode": { "2": "wings: ring 5-8 px around a saturated core" },     // per detector; absent = normal 2 px aperture
+  "spectrum": {                      // 102-band spectrum at the region centre, from the all-sky cube on AWS S3
+    "ra": 133.76, "dec": -7.24, "unit": "MJy/sr", "tile": 10226, "col": 212, "row": 238, "pixel_arcsec": 12.88,
+    "source": "s3://nasa-irsa-spherex/dr1/hips5_cube/hips_20261026",
+    "points": [ { "plane": 1, "det": 1, "wl_um": 0.753, "bw_um": 0.018, "value": 0.0845, "nhits": 9 } ]   // value null = no data
+  },
+  "pixel_sources": { "s3": 0, "irsa": 0, "local": 51 },   // where the cut-outs came from ("local" = data/irsa_snapshot)
+  "offline": true,                    // built from the saved copy because IRSA / AWS did not answer
   "notes": []
 }
 ```
@@ -51,8 +58,9 @@ Frames:
 
 | Endpoint | Returns |
 | --- | --- |
-| `GET /api/health` | `{ok, releases, detectors}` |
+| `GET /api/health` | `{ok, releases, detectors, saved_copy: {cutouts, regions}}` |
 | `GET /api/targets` | the five test targets |
 | `GET /api/resolve?q=` | `{name, ra, dec, pmra, pmdec, plx, epoch, source, ra_now, dec_now}`. Accepts RA/Dec, a test-target name or any SIMBAD name (Sesame). 404 if unknown |
 | `GET /api/gaia?ra&dec&radius` | Gaia DR3 sources (epoch 2016.0) |
+| `GET /api/spectrum?ra&dec` | 102-band spectrum of any sky position from the all-sky cube on AWS (same shape as `meta.spectrum`). The web app usually reads it directly from S3 in the browser instead |
 | `GET /api/region?ra&dec&fov&dets=1,3,5&name=` | meta.json + `base`. Cached on disk by position/FOV/detectors. 503 when IRSA search is down, 404 when SPHEREx has no coverage yet. `fov` 0.02-0.25 deg |

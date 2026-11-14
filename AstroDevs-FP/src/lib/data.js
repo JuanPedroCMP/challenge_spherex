@@ -40,12 +40,19 @@ export function sliceInfo(slice) {
   return { det, wl: CUBE_WL[slice], blank: BLANK_SLICES.includes(slice) }
 }
 
+/** Errors carry `unreachable: true` when the service is down (no answer, or 502/503/504), so the app
+ *  can fall back to the saved regions instead of showing a dead end. */
 async function getJSON(url) {
-  const r = await fetch(url)
+  let r
+  try {
+    r = await fetch(url)
+  } catch {
+    throw Object.assign(new Error('The service did not answer.'), { unreachable: true })
+  }
   if (!r.ok) {
     let msg = `${r.status} ${r.statusText}`
     try { msg = (await r.json()).detail || msg } catch { /* not JSON */ }
-    throw new Error(msg)
+    throw Object.assign(new Error(msg), { unreachable: [502, 503, 504].includes(r.status) })
   }
   return r.json()
 }
@@ -118,7 +125,7 @@ function maskCanvas(img, meta) {
   const px = data.data
   for (let i = 0; i < px.length; i += 4) {
     const on = px[i] > 127
-    px[i] = 255; px[i + 1] = 60; px[i + 2] = 220; px[i + 3] = on ? 170 : 0
+    px[i] = 255; px[i + 1] = 60; px[i + 2] = 220; px[i + 3] = on ? 105 : 0
   }
   ctx.putImageData(data, 0, 0)
   return c

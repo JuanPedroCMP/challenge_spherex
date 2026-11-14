@@ -6,7 +6,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { Stage } from '../lib/stage'
 
-const SIZE = 452
+const SIZE = 520
 
 export default function Workspace({ meta, frames, renderState, tool, onPick, stageRef }) {
   const host = useRef(null)
@@ -76,7 +76,7 @@ export default function Workspace({ meta, frames, renderState, tool, onPick, sta
     const d = drag.current
     drag.current = null
     if (!d || d.moved || !stage.current) return
-    if (tool === 'track' || tool === 'curve') {
+    if (tool === 'track' || tool === 'curve' || tool === 'spectrum') {
       const [x, y] = local(e)
       onPick(...stage.current.toImage(x, y))
     }
@@ -85,7 +85,8 @@ export default function Workspace({ meta, frames, renderState, tool, onPick, sta
     if (!stage.current) return
     e.preventDefault()
     const [x, y] = local(e)
-    stage.current.zoomAt(x, y, e.deltaY < 0 ? 1.2 : 1 / 1.2)
+    // proportional to the wheel/trackpad movement, so a mouse notch and a trackpad flick both feel natural
+    stage.current.zoomAt(x, y, Math.min(2, Math.max(0.5, Math.exp(-e.deltaY * 0.0015))))
     rerender()
   }
 

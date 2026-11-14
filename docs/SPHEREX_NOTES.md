@@ -107,3 +107,13 @@ Tutorials: https://caltech-ipac.github.io/irsa-tutorials/spherex-intro/ and http
 - **Flux** (mosaic tutorial): mJy = MJy/sr x 23.5045 x (pixel scale in arcsec)^2 / 1000.
 - **Photometry** (mosaic tutorial): aperture sum minus (sigma-clipped annulus mean, sigma=3, maxiters=10) x aperture area.
 - **Mosaics.** The IRSA SPHEREx mosaic tool has no API (the tutorial built its mosaic by hand), so we build our own per-visit coadds from cutouts.
+
+## 9. AWS S3 bucket (verified 2026-11-14)
+
+- Bucket `nasa-irsa-spherex`, us-east-1, anonymous. Top prefixes: `dr1/`, `qr3/`, `qr2/`. Under each: `level2/` plus calibration products (`dark/`, `epsf/`, `solid_angle_pixel_map/`, `spectral_wcs/`, ...). `dr1/` also has `hips5_cube/`.
+- Level 2 layout: `dr1/level2/<week>/<l2b-version>/<detector>/level2_<obsid>D<det>_spx_<l2b-version>.fits`, ~65 MB each. No spatial index in the bucket: use IRSA SIA, whose `cloud_access` column holds `{"aws": {"bucket_name": "nasa-irsa-spherex", "key": "...", "region": "us-east-1"}}`. The key is also the part of `access_url` after `/data/spherex/`.
+- Section reads work: `fits.open("s3://nasa-irsa-spherex/<key>", use_fsspec=True, fsspec_kwargs={"anon": True})` then `hdul["IMAGE"].section[y0:y1, x0:x1]` (~4.5 s per exposure for a 51 x 51 cut-out, single-threaded).
+- All-sky cube: `dr1/hips5_cube/hips_20261026/Norder5/Dir<1e4 block>/Npix<N>_cube.fits` (~320 MB). HDUs: PRIMARY (no data; BLANKCH='D3:17,D4:01'; MJD-BEG 60882 .. MJD-END 61078), IMAGE (512x512x102 float32, MJy/sr, RA---HPX / DEC--HPX + WAVE-TAB), NHITS (int32), FLAGS (int32), SPECTRAL_CHANNELS (table: DETECTOR, SUBCHAN, WAVELENGTH, WL_MIN, WL_MAX, R, R_STD, BANDWIDTH), WCS-WAVE (PLANE, WAVELENGTHS, BANDWIDTHS). In tile 0 the IMAGE data starts at byte 8640.
+- The tile WCS has a -TAB third axis, so astropy needs the HDUList for it; for positions, build a 2-D WCS from the spatial keywords only.
+- Tile pixel from HEALPix: order-14 nested (face, ix, iy) -> tile = face*1024 + interleave(ix>>9, iy>>9); column = iy & 511, row = 511 - (ix & 511). Verified 30/30 against the HPX WCS.
+- CORS: `Access-Control-Allow-Origin: *`, methods GET/HEAD; a cross-origin `fetch` with a single `Range` header returns 206 in Chrome, so browsers can read the cube directly.
