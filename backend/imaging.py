@@ -24,6 +24,10 @@ from config import (ASINH_A, GOOD_FLAG_BITS, MJYSR_TO_MJY_PER_ARCSEC2, PHOT_MAXI
                     PHOT_R_OUT, PHOT_SIGMA)
 
 warnings.simplefilter("ignore", FITSFixedWarning)
+# The spectral WCS 'W' triggers an astropy INFO about "inconsistent SIP" every time. The IRSA intro tutorial
+# explains it is expected (we switch SIP off for that WCS on purpose), so keep the logs quiet.
+from astropy import log as _astropy_log  # noqa: E402
+_astropy_log.setLevel("WARNING")
 
 GOOD_MASK = sum(1 << b for b in GOOD_FLAG_BITS)
 
@@ -151,17 +155,68 @@ def save_diff(d, lim, path):
     Image.fromarray(np.flipud(rgb.clip(0, 255).astype(np.uint8)), mode="RGB").save(path, optimize=True)
 
 
-def aperture_flux(img, x, y, pixscale_arcsec, r=PHOT_R_AP, r_in=PHOT_R_IN, r_out=PHOT_R_OUT):
+def fill_for_display(img, max_iter=200):
+    """Fill masked (NaN) pixels from their neighbours, for the picture only - never for measurements.
+
+    Bright stars saturate SPHEREx, so their cores come back flagged and would show as black holes.
+    Growing the surrounding values inward turns a saturated core into a bright star again, while an
+    isolated dead pixel just takes the sky value instead of looking like a new object.
+    """
+    from scipy import ndimage
+    out = img.astype(np.float32).copy()
+    m = ~np.isfinite(out)
+    k = np.ones((3, 3), np.float32)
+    for _ in range(max_iter):
+        if not m.any():
+            break
+        s = ndimage.convolve(np.where(m, 0, out), k, mode="nearest")
+        c = ndimage.convolve((~m).astype(np.float32), k, mode="nearest")
+        fill = m & (c > 0)
+        if not fill.any():
+            break
+        out[fill] = s[fill] / c[fill]
+        m &= ~fill
+    out[m] = np.nanmedian(img) if np.isfinite(img).any() else 0.0
+    return out
+
+
+def save_mask(mask, path):
+    Image.fromarray(np.flipud(mask.astype(np.uint8) * 255), mode="L").save(path, optimize=True)
+
+
+def masked_core_radius(img, x, y, touch=1.5):
+    """Radius (px) of the masked blob sitting ON (x, y), e.g. a saturated star core. 0 if there is none.
+
+    Only masked pixels connected to the target position count: a cosmic ray or another star's core a
+    few pixels away must not make a faint target look saturated.
+    """
+    from scipy import ndimage
+    masked = ~np.isfinite(img)
+    if not masked.any():
+        return 0.0
+    labels, _ = ndimage.label(masked, structure=np.ones((3, 3)))
+    yy, xx = np.indices(img.shape)
+    rr = np.hypot(xx - x, yy - y)
+    ids = set(np.unique(labels[(rr <= touch) & masked])) - {0}
+    if not ids:
+        return 0.0
+    return float(rr[np.isin(labels, list(ids))].max())
+
+
+def aperture_flux(img, x, y, pixscale_arcsec, r=PHOT_R_AP, r_in=PHOT_R_IN, r_out=PHOT_R_OUT, r_min=0.0):
     """Aperture photometry in mJy at (x, y) (0-based pixel coords), following the IRSA mosaic tutorial.
 
     Sky = sigma-clipped mean of the annulus (sigma=3, maxiters=10) times the aperture area, subtracted
     from the aperture sum. MJy/sr -> mJy with 23.5045 * pixscale**2 / 1000. The error is a simple
     estimate from the annulus scatter (the tutorial computes none).
+
+    With r_min > 0 the "aperture" is a ring (r_min..r), used for saturated stars: only the PSF wings
+    are measured, which underestimates the total flux but tracks its changes from visit to visit.
     """
     from astropy.stats import sigma_clipped_stats
     yy, xx = np.indices(img.shape)
     rr = np.hypot(xx - x, yy - y)
-    ap = (rr <= r) & np.isfinite(img)
+    ap = (rr >= r_min) & (rr <= r) & np.isfinite(img)
     ann = (rr >= r_in) & (rr <= r_out) & np.isfinite(img)
     if ap.sum() < 3 or ann.sum() < 5:
         return None, None

@@ -6,6 +6,7 @@
  */
 import { DETECTORS } from '../lib/data'
 import { aperture } from '../lib/measure'
+import { showLabel } from '../lib/playback'
 
 export default function LightCurve({ s, set }) {
   const { region, frames, curvePoint } = s
@@ -42,7 +43,7 @@ export default function LightCurve({ s, set }) {
       <p className="muted small">
         {curvePoint
           ? 'Brightness at the point you clicked (yellow circle), relative to its typical value. Measured from the displayed frames, so treat it as approximate.'
-          : `Brightness of ${region.target?.name || 'the target'} at its predicted position in each visit, relative to its typical value.`}
+          : `Brightness of ${region.target?.name || 'the target'} at its predicted position in each visit, relative to its typical value.${Object.keys(region.photometry_mode || {}).length ? ' The star saturates the detector, so we measure the ring of light around its core: the ups and downs are real, the absolute level is low.' : ''}`}
         {' '}Use the <b>Brightness</b> tool and click any star to measure it instead.
       </p>
       {series.length === 0 ? (
@@ -55,7 +56,7 @@ export default function LightCurve({ s, set }) {
               <text x={P.l - 6} y={Y(t) + 4} textAnchor="end" className="axis">{t}×</text>
             </g>
           ))}
-          {visits.map((v, i) => <text key={v.id} x={X(v.mjd)} y={H - 8} textAnchor={i === 0 ? 'start' : i === visits.length - 1 ? 'end' : 'middle'} className="axis">{v.date.slice(0, 7)}</text>)}
+          {visits.map((v, i) => showLabel(i, visits.length) && <text key={v.id} x={X(v.mjd)} y={H - 8} textAnchor={i === 0 ? 'start' : i === visits.length - 1 ? 'end' : 'middle'} className="axis">{v.date.slice(0, 7)}</text>)}
           {series.map((sr) => (
             <g key={sr.det} style={{ color: DETECTORS[sr.det].color }}>
               <polyline fill="none" stroke="currentColor" strokeWidth="1.5" points={sr.pts.map((p) => `${X(p.mjd)},${Y(p.r)}`).join(' ')} />

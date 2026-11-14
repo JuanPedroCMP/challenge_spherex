@@ -150,13 +150,14 @@ function Details({ r, visit, frameInfo, primary }) {
     ['Detector', primary ? detLabel(primary.det) : '–'],
     ['Wavelength at target', frameInfo?.wl_um ? `${frameInfo.wl_um} µm${frameInfo.bw_um ? ` (band width ${frameInfo.bw_um} µm)` : ''}` : 'n/a'],
     ['Exposures stacked', frameInfo?.n_exp ?? 'no data this visit'],
-    ['Flagged pixels', frameInfo ? `${(frameInfo.flag_frac * 100).toFixed(1)}% (blanked)` : '–'],
+    ['Flagged pixels', frameInfo ? `${(frameInfo.flag_frac * 100).toFixed(1)}% per exposure; ${((frameInfo.masked_frac || 0) * 100).toFixed(1)}% flagged in every exposure (filled in for display, shown with "Flagged pixels")` : '–'],
     ['Pixel scale', `${r.pixscale_arcsec}″ per pixel`],
     ['Data', r.release],
     ['Built', r.generated_utc],
   ]
   const ph = primary && r.photometry?.[String(primary.det)]?.[visit.id]
-  if (ph) rows.push(['Target brightness', `${ph.flux.toFixed(3)} ± ${ph.err.toFixed(3)} ${r.photometry_unit || ''} (aperture, this band and visit)`])
+  const mode = primary && r.photometry_mode?.[String(primary.det)]
+  if (ph) rows.push(['Target brightness', `${ph.flux.toFixed(3)} ± ${ph.err.toFixed(3)} ${r.photometry_unit || ''} (${mode ? `saturated star, ${mode}` : '2 px aperture'}, this band and visit)`])
   if (t) {
     rows.push(['Target motion', `${(Math.hypot(t.pmra, t.pmdec) / 1000).toFixed(2)}″/yr · parallax ${t.plx.toFixed(1)} mas`])
     rows.push(['Predicted shift', `${t.predicted_shift_arcsec}″ (${t.predicted_shift_px} px) over the visits`])

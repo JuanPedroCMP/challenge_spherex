@@ -36,7 +36,11 @@ The web app can run with no backend at all: the five test targets are prebaked a
 
 **5. Stack each visit** (`imaging.coadd`). The median of the exposures in a visit. It lowers the noise and removes one-off glitches such as cosmic rays.
 
+What counts as a "visit" needed care. On a normal field, SPHEREx's look at a spot is spread over up to ~55 days (we measured this on the test targets), followed by months of nothing. Near the ecliptic poles (the Deep Survey) it looks almost every day: R Draconis has 394 days of nearly unbroken coverage. So a visit ends at a gap of more than 30 days *or* once it is 60 days long, and we keep at most 8 visits, evenly spread in time.
+
 **6. One brightness scale per band** (`imaging.stretch_limits`). This step is easy to get wrong. We pick one black level (just below the sky) and one white level (the brightest stars, but never closer than 25 noise units to the sky) from all visits together, and apply an asinh stretch, which shows faint and bright things at the same time. If each visit had its own scale, the image would flicker and hide the motion we want to show.
+
+**6b. Saturated stars.** Bright stars (Barnard's Star, RW Aurigae, R Draconis) saturate the detector, and their cores come back flagged. Pixels flagged in every exposure of a visit are written to a separate mask (`*_mask.png`, shown with *Flagged pixels*). For the picture only, we fill them in from their neighbours (`imaging.fill_for_display`), so a saturated core looks like a bright star instead of a black hole, and an isolated dead pixel takes the sky value instead of looking like a new object. Measurements and difference images never use the filled values.
 
 **7. Differences** (`imaging.save_diff`). Each visit minus the first one, in a color scale people can read: blue where something got fainter, orange where it got brighter, black where nothing changed. A star that moved leaves a blue-orange pair.
 
@@ -47,6 +51,8 @@ The web app can run with no backend at all: the five test targets are prebaked a
 The result is drawn as a crosshair. If the dot follows the crosshair, the motion is real.
 
 **9. Photometry** (`imaging.aperture_flux`). The light inside a 2-pixel circle at the predicted position, minus the sky measured in a ring around it (a sigma-clipped mean, so other stars in the ring do not bias it), converted from surface brightness to millijansky with the formula from IRSA's mosaic tutorial: mJy = MJy/sr × 23.5045 × (pixel size in arcsec)² / 1000. It feeds the light curve and works best for the variable stars.
+
+When the target sits on a saturated core (detected as a masked blob *connected* to the target position, so a nearby cosmic ray does not count), we measure a ring just outside the largest core instead, with the same ring in every visit. That underestimates the total flux but follows its changes, which is what a light curve needs. `meta.json` records this in `photometry_mode`.
 
 **10. Write it out** (`pipeline.write_region`). PNG frames, difference frames and a `meta.json` that holds everything else. See [`API.md`](API.md).
 
@@ -70,7 +76,8 @@ Add the new collection name to the front of `RELEASES` in `backend/config.py`, t
 
 ## Known limits
 
-- IRSA's image search was down on 2026-11-14, so the time-lapses currently use a clearly labelled simulated sample (see the README).
+- Saturated stars only get ring ("wings") photometry: good for changes over time, not for absolute brightness.
+- IRSA's search can return HTTP 502 for a while. The pipeline retries, but a live request can still fail; prebaked targets always work.
 - The reference epoch we use for WISE 0855's position (~2010.5) is an estimate, so its predicted track is approximate.
 - Brightness measured by clicking in the browser comes from the displayed frames. It is good for comparing visits, not for science-grade fluxes.
 - Live cut-outs depend on IRSA's response time, and the first request for a region can take a minute or more.

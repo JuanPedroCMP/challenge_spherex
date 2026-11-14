@@ -19,7 +19,7 @@ import numpy as np
 import imaging
 from astro import gaia_cone, mjd_to_date, propagate
 from config import (DETECTORS, FOV_MAX_DEG, FOV_MIN_DEG, MAX_EXP_PER_VISIT, MAX_VISITS, PIXSCALE_ARCSEC,
-                    RELEASES, VISIT_GAP_DAYS)
+                    RELEASES, VISIT_GAP_DAYS, VISIT_MAX_SPAN_DAYS)
 from irsa import cutout_url, download_all, find_exposures
 
 
@@ -34,11 +34,14 @@ def _spread(items, k):
     return [items[i] for i in idx]
 
 
-def group_visits(rows, gap_days=VISIT_GAP_DAYS):
+def group_visits(rows, gap_days=VISIT_GAP_DAYS, max_span=VISIT_MAX_SPAN_DAYS):
+    """Split time-ordered exposures into visits: a new visit starts after a gap, or when the current one
+    would get longer than max_span days (continuous coverage near the ecliptic poles)."""
     rows = sorted(rows, key=lambda r: r["mjd"])
     groups = []
     for r in rows:
-        if groups and r["mjd"] - groups[-1][-1]["mjd"] <= gap_days:
+        if (groups and r["mjd"] - groups[-1][-1]["mjd"] <= gap_days
+                and r["mjd"] - groups[-1][0]["mjd"] <= max_span):
             groups[-1].append(r)
         else:
             groups.append([r])
@@ -121,13 +124,21 @@ def write_region(out_dir, *, name, slug, ra, dec, fov, grid, shape, visits, fram
     tx, ty = to_disp(tra, tdec)
     target_px = {v["id"]: [round(float(tx[i]), 2), round(float(ny - 1 - ty[i]), 2)] for i, v in enumerate(visits)}
 
-    detectors, photometry = [], {}
+    detectors, photometry, phot_modes = [], {}, {}
     for det in sorted(frames):
         fr = frames[det]
         vmin, vmax = imaging.stretch_limits([f["img"] for f in fr.values()])
         first = next((v["id"] for v in visits if v["id"] in fr), None)
         diffs = {vid: fr[vid]["img"] - fr[first]["img"] for vid in fr if vid != first}
         lim = imaging.diff_limit(list(diffs.values())) if diffs else 1.0
+        # Saturated target? Then measure the PSF wings in a ring outside the largest masked core,
+        # with the same ring in every visit so the light curve stays comparable.
+        idx = {v["id"]: i for i, v in enumerate(visits)}
+        core = max(imaging.masked_core_radius(fr[vid]["img"], tx[idx[vid]], ty[idx[vid]]) for vid in fr)
+        ring = core >= imaging.PHOT_R_AP
+        phot_kw = ({"r_min": core + 1, "r": core + 4, "r_in": core + 7, "r_out": core + 11} if ring else {})
+        if ring:
+            phot_modes[str(det)] = f"wings: ring {core + 1:.0f}-{core + 4:.0f} px around a saturated core"
         entry = {}
         for i, v in enumerate(visits):
             vid = v["id"]
@@ -135,14 +146,19 @@ def write_region(out_dir, *, name, slug, ra, dec, fov, grid, shape, visits, fram
                 continue
             f = fr[vid]
             png = f"D{det}_{vid}.png"
-            imaging.save_gray(f["img"], vmin, vmax, out / png)
+            imaging.save_gray(imaging.fill_for_display(f["img"]), vmin, vmax, out / png)
             e = {"png": png, "n_exp": f["n_exp"], "wl_um": f["wl_um"], "bw_um": f.get("bw_um"),
                  "flag_frac": f["flag_frac"]}
+            masked = ~np.isfinite(f["img"])
+            if masked.any():
+                e["mask"] = f"D{det}_{vid}_mask.png"
+                e["masked_frac"] = round(float(masked.mean()), 4)
+                imaging.save_mask(masked, out / e["mask"])
             if vid in diffs:
                 e["diff"] = f"D{det}_{vid}_diff.png"
                 imaging.save_diff(diffs[vid], lim, out / e["diff"])
             entry[vid] = e
-            flux, err = imaging.aperture_flux(f["img"], tx[i], ty[i], PIXSCALE_ARCSEC)
+            flux, err = imaging.aperture_flux(f["img"], tx[i], ty[i], PIXSCALE_ARCSEC, **phot_kw)
             if flux is not None:
                 photometry.setdefault(str(det), {})[vid] = {"flux": round(flux, 4), "err": round(err, 4)}
         detectors.append({"det": det, "wl_range": list(DETECTORS[det]),
@@ -180,6 +196,7 @@ def write_region(out_dir, *, name, slug, ra, dec, fov, grid, shape, visits, fram
         "gaia": gaia,
         "photometry": photometry,
         "photometry_unit": "mJy",
+        "photometry_mode": phot_modes,   # per detector; missing = normal 2 px aperture
         "notes": notes or [],
     }
     (out / "meta.json").write_text(json.dumps(meta, indent=1))

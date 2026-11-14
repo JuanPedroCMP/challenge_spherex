@@ -26,6 +26,8 @@ export class Stage {
     this.size = size
     this.world = new Container()
     this.diff = new Sprite()
+    this.mask = new Sprite()
+    this.maskTextures = new Map()
     this.overlay = new Graphics()
     app.stage.addChild(this.world, this.overlay)
     this.layerSprites = new Map()
@@ -45,8 +47,10 @@ export class Stage {
     this.layerSprites.clear()
     for (const t of this.diffTextures.values()) t.destroy(true)
     this.diffTextures.clear()
+    for (const t of this.maskTextures.values()) t.destroy(true)
+    this.maskTextures.clear()
     this.world.removeChildren()
-    this.world.addChild(this.diff)
+    this.world.addChild(this.diff, this.mask)
     this.meta = meta
     this.frames = frames
     this.resetView()
@@ -103,7 +107,7 @@ export class Stage {
       const sprite = new Sprite(texture)
       l = { canvas, ctx, img: ctx.createImageData(w, h), texture, sprite, key: '' }
       this.layerSprites.set(id, l)
-      this.world.addChildAt(sprite, this.world.children.length - 1) // keep the diff sprite on top
+      this.world.addChildAt(sprite, this.world.children.length - 2) // keep the diff and mask sprites on top
     }
     return l
   }
@@ -175,6 +179,23 @@ export class Stage {
         this.diff.alpha = 1
         this.diff.blendMode = 'normal'
         this.diff.visible = true
+      }
+    }
+
+    // flagged pixels (saturated cores, cosmic rays, dead pixels) for the top visible band
+    this.mask.visible = false
+    if (state.overlays.mask && primary) {
+      const key = `${primary.det}/${state.visitId}`
+      const src = this.frames.mask?.[primary.det]?.[state.visitId]
+      if (src) {
+        if (!this.maskTextures.has(key)) {
+          const t = Texture.from(src)
+          t.source.scaleMode = 'nearest'
+          this.maskTextures.set(key, t)
+        }
+        this.mask.texture = this.maskTextures.get(key)
+        this.mask.blendMode = 'normal'
+        this.mask.visible = true
       }
     }
 

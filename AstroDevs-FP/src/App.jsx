@@ -25,7 +25,7 @@ const initial = {
   layers: [], blend: 'add',
   frame: 0, range: [0, 0], playing: false, fps: 2, mode: 'animate',
   blinkA: 0, blinkB: 0, blinkPhase: 0, blinkMs: 600,
-  overlays: { target: true, gaia: false },
+  overlays: { target: true, gaia: false, mask: false },
   track: null, curvePoint: null,
   drawer: false, search: false, intro: false, tab: 'curve',
   survey: 'spherex', slice: 25,

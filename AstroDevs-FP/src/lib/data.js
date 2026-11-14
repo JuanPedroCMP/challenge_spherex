@@ -76,9 +76,12 @@ function loadImage(src) {
   })
 }
 
-/** Decode every frame once: gray[det][visit] = Uint8Array (display values), diff[det][visit] = Image. */
+/**
+ * Decode every frame once: gray[det][visit] = Uint8Array (display values), diff[det][visit] = Image,
+ * mask[det][visit] = canvas with the flagged pixels painted magenta (transparent elsewhere).
+ */
 export async function loadFrames(meta) {
-  const gray = {}, diff = {}
+  const gray = {}, diff = {}, mask = {}
   const canvas = document.createElement('canvas')
   canvas.width = meta.width
   canvas.height = meta.height
@@ -87,6 +90,7 @@ export async function loadFrames(meta) {
   for (const d of meta.detectors) {
     gray[d.det] = {}
     diff[d.det] = {}
+    mask[d.det] = {}
     for (const [vid, f] of Object.entries(d.frames)) {
       jobs.push(loadImage(meta.base + f.png).then((img) => {
         ctx.clearRect(0, 0, meta.width, meta.height)
@@ -97,8 +101,25 @@ export async function loadFrames(meta) {
         gray[d.det][vid] = g
       }))
       if (f.diff) jobs.push(loadImage(meta.base + f.diff).then((img) => { diff[d.det][vid] = img }))
+      if (f.mask) jobs.push(loadImage(meta.base + f.mask).then((img) => { mask[d.det][vid] = maskCanvas(img, meta) }))
     }
   }
   await Promise.all(jobs)
-  return { gray, diff }
+  return { gray, diff, mask }
+}
+
+function maskCanvas(img, meta) {
+  const c = document.createElement('canvas')
+  c.width = meta.width
+  c.height = meta.height
+  const ctx = c.getContext('2d', { willReadFrequently: true })
+  ctx.drawImage(img, 0, 0)
+  const data = ctx.getImageData(0, 0, c.width, c.height)
+  const px = data.data
+  for (let i = 0; i < px.length; i += 4) {
+    const on = px[i] > 127
+    px[i] = 255; px[i + 1] = 60; px[i + 2] = 220; px[i + 3] = on ? 170 : 0
+  }
+  ctx.putImageData(data, 0, 0)
+  return c
 }

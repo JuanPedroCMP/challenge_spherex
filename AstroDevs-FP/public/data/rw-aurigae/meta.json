@@ -11,7 +11,7 @@
  "width": 47,
  "height": 47,
  "release": "spherex_dr1 + spherex_dr1_deep + spherex_qr3 + spherex_qr3_deep",
- "generated_utc": "2026-11-14T19:01:40Z",
+ "generated_utc": "2026-11-14T19:22:20Z",
  "wcs": {
   "crval": [
    76.95608781822494,
@@ -60,7 +60,9 @@
      "n_exp": 6,
      "wl_um": 0.932,
      "bw_um": 0.0242,
-     "flag_frac": 0.0538
+     "flag_frac": 0.0538,
+     "mask": "D1_v1_mask.png",
+     "masked_frac": 0.034
     },
     "v2": {
      "png": "D1_v2.png",
@@ -76,6 +78,8 @@
      "wl_um": 0.941,
      "bw_um": 0.0245,
      "flag_frac": 0.0604,
+     "mask": "D1_v3_mask.png",
+     "masked_frac": 0.0299,
      "diff": "D1_v3_diff.png"
     }
    }
@@ -88,18 +92,20 @@
    ],
    "stretch": {
     "fn": "asinh",
-    "vmin": -0.04387,
-    "vmax": 31.87254
+    "vmin": -0.04371,
+    "vmax": 31.86073
    },
    "diff_ref": "v1",
-   "diff_limit": 2.62851,
+   "diff_limit": 2.84106,
    "frames": {
     "v1": {
      "png": "D3_v1.png",
-     "n_exp": 5,
-     "wl_um": 1.992,
-     "bw_um": 0.0489,
-     "flag_frac": 0.0498
+     "n_exp": 6,
+     "wl_um": 2.063,
+     "bw_um": 0.051,
+     "flag_frac": 0.0475,
+     "mask": "D3_v1_mask.png",
+     "masked_frac": 0.0086
     },
     "v2": {
      "png": "D3_v2.png",
@@ -107,6 +113,8 @@
      "wl_um": 2.029,
      "bw_um": 0.05,
      "flag_frac": 0.0285,
+     "mask": "D3_v2_mask.png",
+     "masked_frac": 0.0081,
      "diff": "D3_v2_diff.png"
     },
     "v3": {
@@ -115,6 +123,8 @@
      "wl_um": 2.091,
      "bw_um": 0.0515,
      "flag_frac": 0.0307,
+     "mask": "D3_v3_mask.png",
+     "masked_frac": 0.0086,
      "diff": "D3_v3_diff.png"
     }
    }
@@ -127,18 +137,20 @@
    ],
    "stretch": {
     "fn": "asinh",
-    "vmin": -0.0509,
+    "vmin": -0.05031,
     "vmax": 244.14578
    },
    "diff_ref": "v1",
-   "diff_limit": 10.91259,
+   "diff_limit": 10.44659,
    "frames": {
     "v1": {
      "png": "D5_v1.png",
-     "n_exp": 4,
+     "n_exp": 6,
      "wl_um": 4.189,
      "bw_um": 0.0368,
-     "flag_frac": 0.0386
+     "flag_frac": 0.0358,
+     "mask": "D5_v1_mask.png",
+     "masked_frac": 0.0059
     },
     "v2": {
      "png": "D5_v2.png",
@@ -2521,22 +2533,38 @@
    }
   },
   "3": {
+   "v1": {
+    "flux": 8.6347,
+    "err": 0.1668
+   },
    "v2": {
-    "flux": 74.7382,
-    "err": 0.1213
+    "flux": 9.3617,
+    "err": 0.1435
+   },
+   "v3": {
+    "flux": 8.7934,
+    "err": 0.1448
    }
   },
   "5": {
+   "v1": {
+    "flux": 49.024,
+    "err": 0.1964
+   },
    "v2": {
-    "flux": 1906.2662,
-    "err": 0.6366
+    "flux": 40.7919,
+    "err": 0.1985
    },
    "v3": {
-    "flux": 1185.2847,
-    "err": 0.3812
+    "flux": 26.9213,
+    "err": 0.1838
    }
   }
  },
  "photometry_unit": "mJy",
+ "photometry_mode": {
+  "3": "wings: ring 3-6 px around a saturated core",
+  "5": "wings: ring 3-6 px around a saturated core"
+ },
  "notes": []
 }

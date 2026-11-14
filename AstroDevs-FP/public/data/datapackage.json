@@ -1,16 +1,16 @@
 {
  "name": "skyblink-prebaked-targets",
  "title": "SkyBlink prebaked test targets",
- "generated_by_ai": true,
+ "generated_by_ai": false,
  "resources": [
   {
    "name": "barnards-star",
    "path": "barnards-star/meta.json",
    "format": "json",
    "title": "Barnard's Star: per-visit SPHEREx frames and metadata",
-   "simulated": true,
-   "generated_by_ai": true,
-   "description": "SIMULATED sample: real Gaia DR3 star positions rendered by scripts/make_mock.py (an AI-assisted script). Not SPHEREx pixels.",
+   "simulated": false,
+   "generated_by_ai": false,
+   "description": "Real SPHEREx Level 2 cutouts from NASA/IPAC IRSA, processed by backend/pipeline.py.",
    "sources": [
     {
      "title": "SPHEREx (NASA/IPAC IRSA)",
@@ -27,9 +27,9 @@
    "path": "epsilon-indi-b/meta.json",
    "format": "json",
    "title": "Epsilon Indi B: per-visit SPHEREx frames and metadata",
-   "simulated": true,
-   "generated_by_ai": true,
-   "description": "SIMULATED sample: real Gaia DR3 star positions rendered by scripts/make_mock.py (an AI-assisted script). Not SPHEREx pixels.",
+   "simulated": false,
+   "generated_by_ai": false,
+   "description": "Real SPHEREx Level 2 cutouts from NASA/IPAC IRSA, processed by backend/pipeline.py.",
    "sources": [
     {
      "title": "SPHEREx (NASA/IPAC IRSA)",
@@ -65,9 +65,9 @@
    "path": "rw-aurigae/meta.json",
    "format": "json",
    "title": "RW Aurigae: per-visit SPHEREx frames and metadata",
-   "simulated": true,
-   "generated_by_ai": true,
-   "description": "SIMULATED sample: real Gaia DR3 star positions rendered by scripts/make_mock.py (an AI-assisted script). Not SPHEREx pixels.",
+   "simulated": false,
+   "generated_by_ai": false,
+   "description": "Real SPHEREx Level 2 cutouts from NASA/IPAC IRSA, processed by backend/pipeline.py.",
    "sources": [
     {
      "title": "SPHEREx (NASA/IPAC IRSA)",
@@ -84,9 +84,9 @@
    "path": "r-draconis/meta.json",
    "format": "json",
    "title": "R Draconis: per-visit SPHEREx frames and metadata",
-   "simulated": true,
-   "generated_by_ai": true,
-   "description": "SIMULATED sample: real Gaia DR3 star positions rendered by scripts/make_mock.py (an AI-assisted script). Not SPHEREx pixels.",
+   "simulated": false,
+   "generated_by_ai": false,
+   "description": "Real SPHEREx Level 2 cutouts from NASA/IPAC IRSA, processed by backend/pipeline.py.",
    "sources": [
     {
      "title": "SPHEREx (NASA/IPAC IRSA)",

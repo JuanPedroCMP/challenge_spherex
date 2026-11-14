@@ -5,8 +5,6 @@
 Live app: _coming soon (will be hosted on a `*.vercel.app` or `*.github.io` address)_
 Demo: _coming soon_
 
-![Status](https://img.shields.io/badge/data-simulated%20sample%20until%20IRSA%20is%20back-orange)
-
 ## In short
 
 **What we built.** SkyBlink is a free web tool that turns NASA's SPHEREx images into short time-lapses. You type a position on the sky (or a name), and it plays every SPHEREx visit of that spot in a loop, like a little movie.
@@ -57,11 +55,10 @@ There is a longer walk-through, including the science reasons for each step, in 
 
 ## Data: what is real right now
 
-We would rather be clear about this than have a judge find out:
-
-- **The sky map is real.** It is the SPHEREx DR1 all-sky cube served by NASA/IPAC IRSA.
-- **The time-lapses of the five test targets are a simulated sample for now.** On 14 November 2026, IRSA's SPHEREx image search returned errors (HTTP 502) all day, so we could not download real visits. To keep building, we made a sample from real Gaia DR3 star positions, moved to plausible visit dates. It is marked `"simulated": true` and `"generated_by_ai": true` in its metadata, and the app shows a *Simulated* badge and a watermark on it.
-- **Switching to real data is one command** (`scripts/prebake.py`). The app picks it up automatically and the warnings disappear.
+- **Everything you see for the five test targets is real SPHEREx data** (DR1 and QR3, Wide and Deep surveys), downloaded from NASA/IPAC IRSA on 14 November 2026 and processed by our pipeline. Each target has 3 or 4 survey visits between May 2025 and August 2026. R Draconis, which sits near the ecliptic pole where SPHEREx looks almost every day, has 8 time points.
+- **The sky map is real too:** the SPHEREx DR1 all-sky cube served by IRSA.
+- **Bright stars saturate the detector.** Their cores come back flagged. In the picture we fill those pixels in from their neighbours (switch on *Flagged pixels* to see them), and for brightness we measure the ring of light around the core, so the light curve shows real ups and downs but a low absolute level. The app says so next to the chart.
+- **IRSA was unreliable on the day we built this** (HTTP 502 errors for hours). While it was down we developed against a simulated sample made from Gaia star positions. That sample is no longer shipped, but `scripts/make_mock.py` can still produce it. When it is used, it is marked `"simulated": true` and `"generated_by_ai": true` in its metadata, and the app shows a *Simulated* badge and watermark.
 - **Live cut-outs of any other position** need the backend, which is in beta.
 
 ## NASA data and resources used
@@ -150,7 +147,7 @@ We used AI, and we want to be specific about where.
 
 - **Claude Code (Anthropic)** helped write most of the source code (web app, backend, image pipeline and scripts), the documentation, and the simulated development sample. Every file it helped with starts with an `AI-Assisted:` comment.
 - **The team** chose the idea, the interface layout and the features, picked the test targets and the processing approach, ran and checked the results, and is responsible for every claim in this project.
-- **Synthetic data.** The simulated sample in `AstroDevs-FP/public/data/` was produced by an AI-assisted script (`scripts/make_mock.py`). It is labelled `"generated_by_ai": true` in `meta.json` and `datapackage.json`, and the app shows it with a visible *Simulated* watermark.
+- **Synthetic data.** The data shipped in `AstroDevs-FP/public/data/` is real SPHEREx data (`"generated_by_ai": false` in `datapackage.json`). The development-only simulated sample comes from an AI-assisted script (`scripts/make_mock.py`); whenever it is used it is labelled `"generated_by_ai": true` in `meta.json` and `datapackage.json`, and the app shows a visible *Simulated* watermark.
 - **No AI-generated images, audio or video** are part of the app. No NASA logos, insignia or mission identifiers are used anywhere in it.
 
 ## License

@@ -31,6 +31,11 @@ FOV_MIN_DEG, FOV_MAX_DEG, FOV_DEFAULT_DEG = 0.02, 0.25, 0.08
 MAX_VISITS = 8                         # survey visits kept per region (evenly spaced, first and last always kept)
 MAX_EXP_PER_VISIT = 6                  # exposures coadded per visit and detector
 VISIT_GAP_DAYS = 30                    # exposures closer than this belong to the same visit
+VISIT_MAX_SPAN_DAYS = 60               # ...but one visit never spans more than this. A normal SPHEREx visit
+                                       # to a field lasts up to ~55 days (measured on the test targets), but near
+                                       # the ecliptic poles (Deep Survey) SPHEREx looks almost continuously:
+                                       # R Draconis has 394 days of nearly unbroken coverage, which would
+                                       # otherwise collapse into a single 'visit'.
 DOWNLOAD_WORKERS = 8
 HTTP_TIMEOUT = 120                     # cutout downloads (the IRSA intro tutorial also uses 120 s)
 SEARCH_TIMEOUT = 45                    # TAP/SIA image search (IRSA can hang for minutes when degraded)

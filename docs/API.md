@@ -22,7 +22,8 @@ The same `meta.json` comes from the prebake (`AstroDevs-FP/public/data/<slug>/me
       "stretch": { "fn": "asinh", "vmin": -0.03, "vmax": 0.9 },             // ONE stretch for all visits of this detector
       "diff_ref": "v1", "diff_limit": 0.12,
       "frames": {
-        "v1": { "png": "D6_v1.png", "n_exp": 5, "wl_um": 4.71, "bw_um": 0.037, "flag_frac": 0.02 },
+        "v1": { "png": "D6_v1.png", "n_exp": 5, "wl_um": 4.71, "bw_um": 0.037, "flag_frac": 0.02,
+                "mask": "D6_v1_mask.png", "masked_frac": 0.01 },   // mask only when some pixels are flagged in every exposure
         "v2": { "png": "D6_v2.png", "diff": "D6_v2_diff.png", "n_exp": 4, "wl_um": 4.66, "bw_um": 0.037, "flag_frac": 0.01 }
       }
     }
@@ -35,12 +36,14 @@ The same `meta.json` comes from the prebake (`AstroDevs-FP/public/data/<slug>/me
   "gaia": [ { "id": "…", "g": 15.2, "pm": 12.3, "plx": 1.1, "px": { "v1": [x, y] } } ],
   "photometry": { "6": { "v1": { "flux": 0.58, "err": 0.06 } } },             // aperture flux at target.px
   "photometry_unit": "mJy",                                                      // MJy/sr x 23.5045 x pixscale^2 / 1000
+  "photometry_mode": { "2": "wings: ring 5-8 px around a saturated core" },     // per detector; absent = normal 2 px aperture
   "notes": []
 }
 ```
 
 Frames:
-- `D<det>_<visit>.png`: 8-bit grayscale, north up, east left, per-visit median coadd of (IMAGE − ZODI) with bad flags masked, reprojected onto the shared grid, sky-subtracted, asinh-stretched with the detector's fixed limits.
+- `D<det>_<visit>.png`: 8-bit grayscale, north up, east left, per-visit median coadd of (IMAGE − ZODI) with bad flags masked, reprojected onto the shared grid, sky-subtracted, asinh-stretched with the detector's fixed limits. Pixels flagged in every exposure are filled in from their neighbours for display only.
+- `D<det>_<visit>_mask.png`: 8-bit, 255 where the coadd had no valid data (saturated cores, dead pixels).
 - `D<det>_<visit>_diff.png`: RGB signed difference against `diff_ref` (orange = brighter now, blue = fainter now, black = no change).
 - Pixel coordinates: pixel centres at integers, origin top-left.
 

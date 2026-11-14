@@ -3,7 +3,7 @@
  * The timeline under the workspace: view mode (time-lapse, blink, difference), play/pause,
  * the visit slider with real dates, the period (from/to), speed, overlays and GIF export.
  */
-import { currentVisitIndex } from '../lib/playback'
+import { currentVisitIndex, showLabel } from '../lib/playback'
 
 export default function Timeline({ s, set, dispatch, onExportGif }) {
   const visits = s.region.visits
@@ -39,7 +39,7 @@ export default function Timeline({ s, set, dispatch, onExportGif }) {
         <div className="ticks">
           {visits.map((v, i) => (
             <span key={v.id} className={`${i < from || i > to ? 'out' : ''} ${i === idx ? 'cur' : ''}`}
-              style={{ left: n > 1 ? `${(i / (n - 1)) * 100}%` : '50%' }}>{v.date.slice(0, 7)}</span>
+              style={{ left: n > 1 ? `${(i / (n - 1)) * 100}%` : '50%' }}>{showLabel(i, n) || i === idx ? v.date.slice(0, 7) : ''}</span>
           ))}
         </div>
       </div>
@@ -61,6 +61,7 @@ export default function Timeline({ s, set, dispatch, onExportGif }) {
       <div className="controls">
         <label><input type="checkbox" checked={s.overlays.target} onChange={(e) => dispatch({ type: 'overlay', patch: { target: e.target.checked } })} /> Predicted position</label>
         <label><input type="checkbox" checked={s.overlays.gaia} onChange={(e) => dispatch({ type: 'overlay', patch: { gaia: e.target.checked } })} /> Gaia stars ({s.region.gaia.length})</label>
+        <label title="Pixels the mission flagged as unreliable (saturated star cores, cosmic rays, dead pixels). In the picture they are filled in from their neighbours."><input type="checkbox" checked={s.overlays.mask} onChange={(e) => dispatch({ type: 'overlay', patch: { mask: e.target.checked } })} /> Flagged pixels</label>
         <button className="ghost" onClick={onExportGif} disabled={n < 2} title="Download this loop as an animated GIF">⤓ GIF</button>
       </div>
       {s.mode === 'diff' && (
