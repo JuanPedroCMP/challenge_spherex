@@ -17,7 +17,8 @@ Demo: _coming soon_
 
 | You want to… | How |
 | --- | --- |
-| Look at the whole sky | The big map shows the real SPHEREx all-sky image. Drag to move, scroll to zoom. Pick any of the 102 bands, or switch to 2MASS (infrared) or DSS2 (visible light). |
+| Learn the screen | A one-minute guided tour opens on your first visit (skip it any time; replay it with the ? button). Shared links open straight to their view. |
+| Look at the whole sky | The big map shows the real SPHEREx all-sky image. Drag to move, scroll to zoom. Pick any of the 102 bands (the two empty filter-edge bands are skipped), or switch to 2MASS (infrared) or DSS2 (visible light). |
 | Go to a place on the sky | Click the search bar (or press `/`) and type a name like *WISE 0855* or coordinates like `08h55m10.8s -7d14m42s` or `133.795 -7.245`. |
 | See the sky above a city | In search, open *Sky from a place on Earth* and type an address or latitude/longitude and a time. The map turns to show what is overhead. |
 | Cut out a patch to study | Choose **Cut out** (`C`), pick a size (1.5′ to 12′) and click the map. |

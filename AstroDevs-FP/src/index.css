@@ -340,3 +340,27 @@ details summary { cursor: pointer; color: var(--ink-2); margin: 4px 0; }
 details p { margin-top: 6px; }
 .key-pair { white-space: nowrap; margin-right: 8px; }
 .ticks span.nodata { opacity: .25; text-decoration: line-through; }
+
+/* guided tour */
+.tour-layer { position: fixed; inset: 0; z-index: 100; }
+.tour-dim { position: fixed; inset: 0; background: rgba(0, 0, 0, .72); z-index: 100; }
+.tour-spot {
+  position: fixed; border: 2px solid var(--lamp); border-radius: var(--r); pointer-events: none;
+  box-shadow: 0 0 0 9999px rgba(0, 0, 0, .72); transition: all .25s ease;
+}
+.tour-card {
+  position: fixed; z-index: 101; width: 380px; max-width: calc(100vw - 28px);
+  background: var(--surface); border: 1px solid var(--line-strong); border-radius: var(--r);
+  padding: 18px 20px 16px; box-shadow: 0 24px 60px rgba(0, 0, 0, .7);
+}
+.tour-card.welcome { width: 540px; padding: 28px 32px 22px; }
+.tour-card h2 { font-size: 19px; margin: 0 0 8px; }
+.tour-card.welcome h2 { font-size: 26px; line-height: 1.15; margin-bottom: 14px; }
+.tour-card p { color: var(--ink-2); }
+.tour-actions { display: flex; align-items: center; gap: 8px; margin: 14px 0 6px; }
+.tour-actions .primary { min-height: var(--hit); padding: 0 16px; }
+.tour-actions .skip { margin-right: auto; border-color: transparent; color: var(--ink-3); }
+.tour-dots { display: inline-flex; gap: 5px; margin-right: 6px; }
+.tour-dots i { width: 6px; height: 6px; border-radius: 50%; background: var(--line-strong); }
+.tour-dots i.on { background: var(--lamp); }
+@media (prefers-reduced-motion: reduce) { .tour-spot { transition: none; } }
